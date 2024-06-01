@@ -1,0 +1,34 @@
+equ MAXPRIME, 500
+
+ldi 2
+prime:
+ dup
+ sys OUTNUM
+ call mark
+findnext:
+ inc
+ dup
+ ldi MAXPRIME
+ sub
+ p? hlt 
+ dup
+ ld
+ nz? jmp findnext
+ jmp prime
+
+mark:
+ dup
+l: 
+ dup
+ ldi MAXPRIME
+ sub
+ p? jmp done
+ dup
+ dup
+ st
+ over
+ add
+ jmp l
+done:
+ drop
+ ret

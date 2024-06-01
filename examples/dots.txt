@@ -1,0 +1,8 @@
+ ldi 44
+l:
+ dup
+ sys RANDINT
+ over 
+ sys RANDINT
+ sys DRAWDOT
+ jmp l

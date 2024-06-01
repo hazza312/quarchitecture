@@ -1,0 +1,90 @@
+ # program constants
+ equ SIZE, 44 # needs to be even!
+ equ SIZE2, 1936
+ equ START,90 # 2*SIZE +2
+ const IOFFSETS, -44,1,-1,44
+
+ ldi START
+ call rec
+ hlt
+
+move: # (i1 d -- i2)
+ ldi 2
+ mul
+ ldi IOFFSETS
+ add
+ ldp
+ add
+ ret
+
+
+draw: # (idx -- )
+ dup
+ ldi SIZE
+ mod
+ swap
+ ldi SIZE
+ div
+ sys DRAWDOT
+ ret
+
+
+rec: # (idx --)
+ dup
+ dup
+ st
+ dup
+ call draw
+ 
+ ldi 3
+ tor
+ ldi 4
+ sys RANDINT
+l2:
+ call inner
+ nz? jmp continue
+ swap
+ call draw
+ call rec
+ loop l2
+ jmp fin
+
+continue:
+ drop
+ drop
+ loop l2
+fin:
+ drop
+ drop 
+ ret
+
+inner:
+ inc
+ ldi 4
+ mod
+ over
+ over
+wallandnext:
+ call move
+ over
+ over
+ swap
+ call move
+ dup
+shouldskip: # (id -- b)
+ dup
+ ldi SIZE
+ mod
+ z? jmp no1
+ dup
+ ldi SIZE2
+ div
+ nz? jmp no1
+yes:
+ ld 
+ ret
+no1:
+ drop
+ ldi 1
+ ret
+

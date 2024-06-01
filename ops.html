@@ -1,0 +1,512 @@
+<html>
+    <head>
+        <style>
+            html {
+                background-color: honeydew;
+                color: blue
+            }
+            table {
+                width: 100%;
+            }
+            td,th {
+                border: 1px solid black;
+                font-family: monospace;
+            }
+            code {
+                color:lightgrey;
+                background-color: blue;
+            }
+            .spannycell {
+                background-color: blue;
+                color: white;
+                text-align: center;
+                font-weight: bold;
+            }
+
+        </style>
+    </head>
+    <body>
+
+        <marquee direction="right"><h1>QuaRchitecture Reference</h1></marquee>
+        <!-- <img src="genio.gif" style="float: right"> -->
+        <h2>Instruction Set Architecture</h2>
+        The ISA is character-oriented. A character is a value taken from ... This is specifically the alphanumeric character set used in QR code encoding.
+        <h3>Instruction Encoding</h3>
+        <p>
+        In the physical layer (as encoded in the QR code in alphanumeric mode), two characters are encoded in 11 bits: so 5.5 bits per character. This 31% less space than two characters stored in byte-mode.
+        </p>
+        <p>
+            Each machine instruction consists of an opcode character, followed by an optional argument. The argument is a 1-3 signed or unsigned number encoded in base 44. 
+        </p>
+        <h3>Base 44 encoding</h3>
+        <p>
+            Numbers are encoded in base 44:
+        </p>
+        <table>
+            <tr>
+                <th>Characters</th>
+                <th>Range (unsigned)</th>
+                <th>Range (signed)</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>0 .. 43</td>
+                <td>-22 .. 21</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>0 .. 1935</td>
+                <td>-968 .. 967</td>
+            </tr>
+                <tr>
+                <td>3</td>
+                <td>0 .. 85184</td>
+                <td>-42592 .. 42591</td>
+            </tr>
+        </table>
+        <p>
+            Some example encodings:
+        </p>
+        <table>
+            <tr>
+                <th></th>
+                <th>-42592</th>
+                <th>-968</th>
+                <th>-22</th>
+                <th>-2</th>
+                <th>-1</th>
+                <th>0</th>
+                <th>1</th>
+                <th>2</th>
+                <th>21</th>
+                <th>22</th>
+                <th>43</th>
+                <th>44</th>
+                <th>967</th>
+                <th>968</th>
+            </tr>
+            <tr>
+                <th>1s</th>
+            </tr>
+            <tr>
+                <th>1u</th>
+            </tr>
+        </table>
+
+        <h3>Argument types</h3>
+        <p>
+            Each operation consists of an opcode character, followed optionally by an argument of 
+        </p>
+        <dl>
+            <dt>rel1</dt>
+            <dd>a 1 character signed relative offset</dd>
+            <dt>abs2, abs3</dt>
+            <dd>a 2 or 3 character unsigned absolute offset. This can addresses in the range 0-1935</dd>
+            <dd></dd>
+        </dl>
+
+
+        <h2>Opcodes</h2>
+        <table>
+            <tr>
+                <th>Encoding</th>
+                <th>Opcode</th>
+                <th style="width: 130px">Stack Effect</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td colspan="4" class="spannycell">Arithmetic</td>
+            </tr>
+            <tr>
+                <td>0</td>
+                <td>inc</td>
+                <td>(n -- n)</td>
+                <td>Increment top of stack</td>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>dec</td>
+                <td>(n -- n)</td>
+                <td>Decrement top of stack</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>neg</td>
+                <td>(n -- n)</td>
+                <td>Negate top of stack</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>add</td>
+                <td>(n n -- n)</td>
+                <td>Add two numbers</td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>sub</td>
+                <td>(n n -- n)</td>
+                <td>Subtract top of stack from next of stack</td>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td>mul</td>
+                <td>(n n -- n)</td>
+                <td>Multiply two number on top of stack</td>
+            </tr>
+            <tr>
+                <td>6</td>
+                <td>div</td>
+                <td>(n n -- n)</td>
+                <td>Divide second on stack by top of stack</td>
+            </tr>
+            <tr>
+                <td>7</td>
+                <td>mod</td>
+                <td>(n n -- n)</td>
+                <td>Push remainder from division of second on stack by top of stack</td>
+            </tr>
+            <tr>
+                <td colspan="4" class="spannycell">Bitwise</td>
+            </tr>
+            <tr>
+                <td>8</td>
+                <td>not</td>
+                <td>(n -- n)</td>
+                <td>Complement top of stack</td>
+            </tr>
+            <tr>
+                <td>9</td>
+                <td>shl</td>
+                <td>(n n -- n)</td>
+                <td>Bitwise shift left</td>
+            </tr>
+            <tr>
+                <td>A</td>
+                <td>shr</td>
+                <td>(n n -- n)</td>
+                <td>Bitwise shift right</td>
+            </tr>
+            <tr>
+                <td>B</td>
+                <td>xor</td>
+                <td>(n n -- n)</td>
+                <td>Exclusive or</td>
+            </tr>
+            <tr>
+                <td>C</td>
+                <td>or</td>
+                <td>(n n -- n)</td>
+                <td>Or</td>
+            </tr>
+            <tr>
+                <td>D</td>
+                <td>and</td>
+                <td>(n n -- n)</td>
+                <td>Bitwise and</td>
+            </tr>
+            <tr>
+                <td colspan="4" class="spannycell">Conditionals</td>
+            </tr>
+            <tr>
+                <td>E</td>
+                <td>z ? &lt;op&gt;</td>
+                <td>(cnd -- )</td>
+                <td>Execute next op if zero, else skip</td>
+            </tr>
+            <tr>
+                <td>F</td>
+                <td>nz ? &lt;op&gt;</td>
+                <td>(cnd -- )</td>
+                <td>Execute next op if not zero, else skip</td>
+            </tr>
+            <tr>
+                <td>G</td>
+                <td>m ? &lt;op&gt;</td>
+                <td>(cnd -- )</td>
+                <td>Execute next op if minus, else skip</td>
+            </tr>
+            <tr>
+                <td>H</td>
+                <td>p ? &lt;op&gt;</td>
+                <td>(cnd -- )</td>
+                <td>Execute next op if positive, else skip</td>
+            </tr>
+            <tr>
+                <td colspan="4" class="spannycell">Control Flow</td>
+            </tr>
+            <tr>
+                <td>I</td>
+                <td>ret</td>
+                <td>(--)<br>R(pc -- )</td>
+                <td>Return from subroutine call. Pop and continue execution from address on return stack</td>
+            </tr>
+            <tr>
+                <td>J &lt;s1&gt;<br>K &lt;u2&gt;</td>
+                <td>
+                    jmp &lt;dst&gt;
+                </td>
+                <td>( -- )</td>
+
+                <td>Jump to dst. Dst is either a signed 1char relative offset, or unsigned absolute address</td>
+            </tr>
+            <tr>
+                <td>L &lt;s1&gt;<br>M &lt;u2&gt;</td>
+                <td>
+                    call &lt;dst&gt;
+                </td>
+                <td>R(-- nxt)</td>
+                <td>Call subroutine at dst, pushing the address of the subsequent instruction to be executed on subroutine return on the return stack.
+                    Dst is either a signed 1char relative offset, or unsigned absolute address.
+                </td>
+            </tr>
+            <tr>
+                <td>N &lt;s1&gt;</td>
+                <td>
+                    loop &lt;dst&gt;
+                </td>
+                <td>
+                    i > 0:<br>
+                    R(i -- i-1)<br>
+                    else:<br>
+                    R(i -- )
+                </td>
+                <td>Decrement top of return stack. If greater than 0, jump to dst. Else, drop top of return stack. Dst is a signed 1char relative offset</td>
+            <tr>
+                <td colspan="4" class="spannycell">Load & Store</td>
+            </tr>
+            <tr>
+                <td>
+                    O &lt;s1&gt;<br>
+                    P &lt;s2&gt;<br>
+                    Q &lt;s3&gt;<br>
+                </td>
+                <td>ldi</td>
+                <td>( -- n )</td>
+                <td>Load an immediate signed number argument onto the stack</td>
+            </tr>
+            <tr>
+                <td>R</td>
+                <td>ld</td>
+                <td>(addr -- n)</td>
+                <td>Load a number from the address specified by top of stack</td>
+            </tr>
+            <tr>
+                <td>S</td>
+                <td>st</td>
+                <td>(val addr -- n)</td>
+                <td>Store a value at address specified by top of stack</td>
+            </tr>
+            <tr>
+                <td>T &lt;u1&gt;</td>
+                <td>ldz &lt;i&gt;</td>
+                <td>(--)</td>
+                <td>Load from immediate offset in zero-page</td>
+            </tr>
+            <tr>
+                <td>U &lt;u1&gt;</td>
+                <td>stz &lt;i&gt;</td>
+                <td>(val --)</td>
+                <td>Store to immediate offset in zero-page</td>
+            </tr>
+            <tr>
+                <td>V</td>
+                <td>ldp</td>
+                <td>(offset --)</td>
+                <td>Load* from offset in program memory</td>
+            </tr>
+            <tr>
+                <td>W</td>
+                <td>st</td>
+                <td>( val addr -- )</td>
+                <td>Store value at given memory address</td>
+            </tr>
+            <tr>
+                <td colspan="4" class="spannycell">Stackrobatics</td>
+            </tr>
+            <tr>
+                <td>X</td>
+                <td>dup</td>
+                <td>(n -- n n)</td>
+                <td>Duplicate top of stack</td>
+            </tr>
+            <tr>
+                <td>Y</td>
+                <td>drop</td>
+                <td>(n --)</td>
+                <td>Drop top of stack</td>
+            </tr>
+            <tr>
+                <td>Z</td>
+                <td>over</td>
+                <td>(a b -- a b a)</td>
+                <td>Push second on stack</td>
+            </tr>
+            <tr>
+                <td>_</td>
+                <td>swap</td>
+                <td>(a b -- b a)</td>
+                <td>Swap the top two items on the stack</td>
+            </tr>
+            <tr>
+                <td>$</td>
+                <td>nip</td>
+                <td>( a b -- b )</td>
+                <td>Drop second on stack</td>
+            </tr>
+            <tr>
+                <td>$</td>
+                <td>rot</td>
+                <td>(a b c -- b c a)</td>
+                <td>Rotate top 3 elements on stack</td>
+            </tr>
+            <tr>
+                <td>%</td>
+                <td>rtop</td>
+                <td>(-- n)</td>
+                <td>Push a copy of the top of the return stack</code></td>
+            </tr>
+            <tr>
+                <td>*</td>
+                <td>tos</td>
+                <td>( -- n)<br>R( n -- )</td>
+                <td>Move the top of the return stack to the data stack</td>
+            </tr>
+            <tr>
+                <td>+</td>
+                <td>tor</td>
+                <td>( n -- )<br>R( -- n )</td>
+                <td>Move top of the data stack to the return stack</td>
+            </tr>
+
+
+            <tr>
+                <td>rdrop</td>
+                <td>r( n -- )</td>
+                <td>X</td>
+                <td>Drop top of return stack</td>
+            </tr>
+            <tr>
+                <td colspan="4" class="spannycell">Control Flow</td>
+            </tr>
+            <tr>
+                <td>nop</td>
+                <td>( -- )</td>
+                <td>X</td>
+                <td>No operation</td>
+            </tr>
+            <tr>
+                <td>hlt</td>
+                <td>( -- )</td>
+                <td>X</td>
+                <td>Halt the system</td>
+            </tr>
+            <tr>
+                <td>sys</td>
+                <td>( ... n -- ... )</td>
+                <td>X</td>
+                <td>Execute a system call n</td>
+            </tr>
+        </table>
+        <h2>System Calls</h2>
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>Code</th>
+                <th>Stack Effect</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>INCHAR</td>
+                <td>0</td>
+                <td>( -- c)</td>
+                <td>Input a char from stdin</td>
+            </tr>
+            <tr>
+                <td>OUTCHAR</td>
+                <td>1</td>
+                <td>(c 1 --)</td>
+                <td>Output a character to stdout</td>
+            </tr>
+            <tr>
+                <td>OUTNUM</td>
+                <td>2</td>
+                <td>(n --)</td>
+                <td>Output a number to stdout</td>
+            </tr>
+            <tr>
+                <td>DRAWDOT</td>
+                <td>3</td>
+                <td>(x y 3 --)</td>
+                <td>Draw dot on canvas</td>
+            </tr>
+            <tr>
+                <td>RANDINT</td>
+                <td>4</td>
+                <td>(max 4 -- n)</td>
+                <td>Generate a random number between 0..max</td>
+            </tr>
+        </table>
+        <h2>Assembler</h2>
+        <p>
+        The assembler converts a program text into its encoded form. In listing form, the space " " character may be substituted for an underscore "_" for clarity. This is not substituted in the binary output.
+        </p>
+        <h3>Labels</h3>
+        <p>
+        The assembler supports labels. A label <code>l1</code> can be defined and referenced in arguments to instructions:
+    </p>
+        <pre>
+l1:
+  jmp l1
+        </pre>
+        <p>Labels may be redefined. Forward references are also supported:</p>
+        <pre>
+  call hop
+  ldi 3
+hop:
+  dup
+        </pre>
+        <p>
+        Forward references may be encoded non-optimally (specifically, they will use the 2-character absolute encoding of a branch instruction).
+    </p>
+        <h3>Directives</h3>
+        <p>A number of assembler directives are available:</p>
+        <table>
+            <tr>
+                <th>Directive</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>res n</td>
+                <td>Reserve n bytes, filling with <code>nop</code></td>
+            </tr>
+        </table>
+        <h3>Predefined Macros</h3>
+        <p>A number of macros are predefined for convinience
+        </p>
+        <table>
+            <tr>
+                <th>Macro</th>
+                <th>Stack Effect</th>
+                <th>Definition</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>nip</td>
+                <td>( a b -- b )</td>
+                <td>swap; drop</td>
+                <td>Drop second on stack</td>
+            </tr>
+            <tr>
+                <td>neg</td>
+                <td>( n -- n )</td>
+                <td>ldi 0; swap; sub </td>
+                <td>Rotate top 3 elements on stack</td>
+            </tr>
+        </table>
+
+        <pre>
+
+0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ$%*+-./:
+
+    </body>
+</html>

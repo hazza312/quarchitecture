@@ -1,0 +1,57 @@
+#output, #stderr, #binary, #stats {
+    border: 1px solid black;
+    font-family: monospace;
+}
+
+#stderr, #binary, #stats {
+    min-height: 4em;
+    word-wrap:break-word;
+    text-wrap:wrap;
+    overflow: hidden;
+}
+
+#stats, #binary {
+    min-height: 2em;
+}
+
+#output {
+    width: 60px;
+    overflow: hidden;
+    background-color: lightslategray;
+}
+
+#stderr {
+    color: red;
+}
+
+#input, #lineNos, #output {
+    height: 100%;
+    resize: none;
+}
+#input {
+    width: 250;
+}
+#lineNos {
+    width: 100%;
+    resize: none;
+    border: none;
+    background-color: lightslategray;
+    overflow: hidden;
+}
+
+
+#guide {
+    border: 1px solid salmon;
+    width: 100%;
+}
+td {
+    color: black;
+    font-weight: bold;
+    background-color: palegoldenrod;
+    border: 2px solid white;
+    
+}
+table {
+    border-collapse: collapse;
+}
+

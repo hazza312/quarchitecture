@@ -1,0 +1,423 @@
+<html>
+<head>
+<style>
+  input, textares, div {
+    background-color: white;
+    color: black;
+  }
+  html {
+    /* background-color: darkblue; */
+    background-image: url("galaxy0.gif");
+    color: white
+  }
+#state, #stdout, #stderr {
+  width: 100%;
+  border: 1px solid black;
+  font-family: monospace;
+}
+
+#stderr {
+  color:red;
+}
+
+span {
+  font-family: monospace;
+  background: black;
+  display: block;
+  font-size: 12pt;
+  padding: 2px;
+  color: greenyellow;
+  overflow: scroll;
+  max-width: 100%;
+  width: 500px;
+  height: 40px;
+}
+
+button {
+  font-size: 14pt;
+  color: white;
+  background-color: grey;
+  border: 4px outset lightgrey;
+}
+button:active {
+  background-color: darkblue;
+}
+#program{
+  width: 100%;
+}
+td {
+  border: 1px solid white;
+}
+button:hover {
+  cursor: pointer;
+}
+button:active {
+  border: 4px inset black;
+}
+#stdin {
+    width: 100%;
+}
+h1 {
+    background: black;
+    color: white;
+}
+</style>
+</head>
+
+<body>
+  
+  <h1><center>virtual machine</center></h1>
+  <img src="computer.gif" style="float: right; position: absolute; top: 0; right: 0">
+  
+<table style="width: 100%;">
+  <tr>
+    <td style="width: 100px;">Program</td>
+    <td>
+      <textarea id="program" onkeydown="go()" rows="1">O2V-2MN00VPA24H+VRFJWJOVVPA24HK+0VVSX3JTWI</textarea>
+    </td>
+  </tr>
+  <tr>
+    <td>State</td>
+    <td>
+      <table style="width: 100%">
+        <tr>
+          <td style="width: 60px;">Halted</td>
+          <td><span id="state_halted"></span></td>
+        </tr>
+        <tr>
+          <td>PC</td>
+          <td><span id="state_pc"></span></td>
+        </tr>
+        <tr>
+          <td>Stack</td>
+          <td><span id="state_stack"></span></td>
+        </tr>
+        <tr>
+          <td>RStack</td>
+          <td><span id="state_rstack"></span></td>
+        </tr>
+        <tr>
+          <td>Error</td>
+          <td><span id="state_error"></span></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td>Control</td>
+    <td>
+      <button onclick="reset();" style="background: red;">reset</button>
+      <button onclick="uiStep();" style="background: orange;">step</button>
+      <button onclick="run(100);" style="background: green;">slow</button>
+      <button onclick="run(1);" style="background: green;">fast</button>
+      <button onclick="runToCompletion();" style="background: purple;">like the clappers</button>
+    </td>
+  </tr>
+  <tr>
+    <td>Stdout</td>
+    <td>
+      <textarea id="stdout" readonly></textarea>
+    </td>
+  </tr>
+  <tr>
+    <td>Stdin</td>
+    <td>
+      <textarea id="stdin"></textarea>
+    </td>
+  </tr>
+  <tr>
+    <td>Graphic out</td>
+    <td>
+      <canvas id="canvas" width="300" height="300" style="background: white;"></canvas>
+    </td>
+  </tr>
+</table>
+
+<script src="common.js"></script>
+<script>
+var program;
+var state;
+
+var runInterval;
+
+function run(n) {
+  window.clearInterval(runInterval);
+  runInterval = window.setInterval(uiStep, n);
+}
+
+
+
+function reset() {
+  program = document.getElementById("program").value;
+  document.getElementById("state_error").innerHTML = "";
+  state = {pc: 0, stack: [], rstack: [], hlt: false, mem: [], stdin: 0};
+  uiUpdate();
+  document.getElementById("stdout").value= "";
+  
+  
+  window.clearInterval(runInterval);
+  ctx.clearRect(0, 0, 44, 44);
+}
+
+
+function fetch(i) {
+  let ret = program[i];
+  if (ret === undefined) {
+    throw new Error(`read ${i} from undefined memory`);
+  }
+  return ret;
+}
+
+function push(n, stack) {
+  if (stack === undefined) stack = state.stack;
+  stack.push(n);
+}
+
+function pop(stack) {
+  if (stack === undefined) stack = state.stack;
+  if (stack.length == 0) {
+    throw new Error(`stack underflow`);
+  }
+  return stack.pop();
+}
+
+function peek(stack) {
+  if (stack === undefined) stack = state.stack;
+  if (stack.length == 0) {
+    throw new Error(`stack underflow`);
+  }
+  return stack[stack.length - 1];
+}
+
+function jmp(cnd, len, relative) {
+  if (cnd) {
+    let dst = arg(len, relative);
+    state.pc = relative ? state.pc + dst - 1: dst;
+  }
+}
+
+function call(cnd, len, relative) {
+  if (cnd) {
+    let callArg = arg(len, relative);
+    let dst = relative ? state.pc + callArg - 1: callArg;
+    push(state.pc, state.rstack);
+    state.pc = dst;
+  }
+}
+
+function loop(len, relative) {
+  let val = peek(state.rstack);
+  if (val <= 0) {
+    pop(state.rstack);
+    state.pc++;
+  } else {
+    state.rstack[state.rstack.length - 1]--;
+    jmp(true, len, relative);
+  }
+}
+
+function arg(len, signed) {
+  let parts = program.slice(state.pc, state.pc + len).split("");
+  state.pc += len;
+  return decodeNum(parts, signed);
+}
+
+function pm(src, len, signed) {
+  return decodeNum(program.slice(src, src+len).split(""), true);
+}
+
+function condition(cnd) {
+  if (!cnd) {
+    state.pc += (ARG_LENGTH.get(CHAR_TO_OPCODE.get(fetch(state.pc))) || 0) + 1;
+  }
+}
+
+function biOp(fn) {
+  let b = pop();
+  let a = pop();
+  push(fn(a, b))
+}
+
+function step() {
+  if (state.hlt) 
+    return;
+  
+  var opChar = fetch(state.pc++);
+  if (!CHAR_TO_OPCODE.has(opChar)) {
+    throw new Error(`${opChar} not a valid opcode`);
+  }
+
+  let op = CHAR_TO_OPCODE.get(opChar);
+  // console.log(state.pc-1, opChar, op);
+  switch (op) {
+  // arithmetic
+  case "inc": push(pop() + 1);      break;
+  case "dec": push(pop() - 1);      break;
+  case "neg": push(-pop());         break;
+  case "add": biOp((a,b) => a + b);  break;
+  case "sub": biOp((a,b) => a - b); break;
+  case "mul": biOp((a,b) => a * b);  break;
+  case "div": biOp((a,b) => Math.floor(a / b)); break;
+  case "mod": biOp((a,b) => Math.floor(a % b)); break;
+
+  // bitwise
+  case "not": push(~pop());         break;
+  case "shl": biOp((a,b) => a << b); break;
+  case "shr": biOp((a,b) => a >> b); break;
+  case "xor": push(pop() ^ pop()); break;
+  case "or":  push(pop() | pop());  break;
+  case "and": push(pop() & pop());  break;
+
+  // conditions
+  case "nz": condition(pop() != 0); break;
+  case "z": condition(pop() == 0); break;
+  case "m": condition(pop() < 0); break;
+  case "p": condition(pop() > 0); break;
+
+  // control flow
+  case "ret": state.pc = pop(state.rstack); break;
+  case "jmp_1": jmp(true, 1, true); break;
+  case "jmp_2": jmp(true, 2, false); break;
+  case "call_1": call(true, 1, true); break;
+  case "call_2": call(true, 2, false); break;
+  case "loop_1": loop(1, true); break;
+
+  // load/store
+  case "ldi_1": push(arg(1, true)); break;
+  case "ldi_2": push(arg(2, true)); break;
+  case "ldi_3": push(arg(3, true)); break;
+  case "ld": push(state.mem[pop()] || 0); break;
+  case "st": state.mem[pop()] = pop(); break;
+  case "ldz": push(state.mem[arg(1, false)] || 0); break;
+  case "stz": state.mem[arg(1, false)] = pop(); break;
+  case "ldp": push(pm(pop(), 2, true)); break;
+
+  // stack
+  case "dup": {let a = pop(); push(a); push(a); break;}
+  case "drop": pop(); break;
+  case "over": {
+    let a = pop();
+    let b = pop();
+    push(b);
+    push(a);
+    push(b);
+    break;
+  };
+  case "swap": {let a = pop(); let b = pop(); push(a); push(b); break;}
+  case "rtop": push(peek(state.rstack)); break;
+  case "tos": push(pop(state.rstack)); break;
+  case "tor": push(pop(), state.rstack); break;
+  case "rot": {
+    let c = pop();
+    let b = pop();
+    let a = pop();
+    push(b);
+    push(c);
+    push(a);
+    break;
+  }
+  
+  case "nop": break;
+  case "hlt": state.hlt = true; break;
+  case "sys": doSys(arg(1, false)); break;
+  default:
+    throw new Error(`unknown opcode ${op}`);
+  }
+}
+
+function doSys(cmd) {
+  switch(cmd) {
+    case 0: {
+      let stdin = document.getElementById("stdin").value;
+      if (state.stdin >= stdin.length) {
+        push(0);
+        push(0);
+        break;
+      }
+      push(stdin[state.stdin++].charCodeAt(0));
+      push(1);
+      break;
+    }
+    case 1: {
+      document.getElementById("stdout").value += String.fromCharCode([pop()]); 
+      break;
+    }
+    case 2: {
+      document.getElementById("stdout").value += pop() + " "; 
+      break;
+    }
+    case 3: { // draw dot (x y 3 -- )
+      let y = pop();
+      let x = pop();
+      ctx.fillRect(x, y, 1, 1);
+      break;
+    }
+    case 4: break;
+    case 5: { // random number (n -- n)
+      push(Math.floor(Math.random() * pop()));
+      break;
+    }
+    case 42: {
+      document.getElementById("stdout").value += "\n" + JSON.stringify(state.stack);
+      console.log(state.mem);
+      break;
+    } 
+    case 43: {
+      window.clearInterval(runInterval);
+      break;
+    }
+  }
+}
+
+function uiUpdate() {
+  document.getElementById("state_pc").innerHTML = `${state.pc} (${CHAR_TO_OPCODE.get(program[state.pc])})`;
+  document.getElementById("state_halted").innerHTML = state.hlt;
+  document.getElementById("state_stack").innerHTML = JSON.stringify(state.stack);
+  document.getElementById("state_rstack").innerHTML = JSON.stringify(state.rstack);
+}
+
+function uiStep() {
+  try {
+    uiUpdate();
+    step();
+    
+
+  } catch(e) {
+    document.getElementById("state_error").innerHTML = e;
+    state.hlt = true;
+  }
+}
+
+function go(e) {
+    if(event.key === 'Enter') {
+        reset();
+        run(0);      
+    }
+}
+
+window.onerror = function(msg) {
+  
+};
+
+function runToCompletion() {
+  uiUpdate();
+  try {
+    while(!state.hlt) step();
+  } catch(e) {
+    document.getElementById("state_error").innerHTML = e;
+    state.hlt = true;
+  }
+  
+  uiUpdate();
+}
+</script>
+<br>
+<br>
+
+<script>
+  var ctx = document.getElementById("canvas").getContext("2d");
+  ctx.scale(300 / 44, 300 / 44);
+  reset();
+</script>
+</body>
+</html>

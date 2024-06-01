@@ -1,0 +1,5 @@
+l:
+ sys INCHAR
+ z? hlt
+ sys OUTCHAR
+ jmp l

@@ -1,0 +1,161 @@
+<html>
+    <head>
+        <title>QR Assembler</title>
+        <link rel="stylesheet" href="styles.css" type="text/css"></link>
+        <style>
+            body {
+                background-image: url("323.gif");
+            }
+            textarea, pre {
+                background: white;
+            }
+            h1 {
+                background: black;
+                color: white;
+            }
+        </style>
+    </head>
+
+    <body>
+        <h1><center>assembler</center></h1>
+        <table>
+            <tr style="height: 500px;">
+                <td style="height: 500px">
+                    <textarea id="lineNos" readonly></textarea>
+                </td>
+                <td style="width: 100%; height: 500px">
+                    <textarea id="input" style="width: 100%;">
+ldi 2
+prime:
+ dup
+ sys OUTNUM
+ call mark
+findnext:
+ inc
+ dup
+ ldi 100
+ sub
+ p? hlt 
+ dup
+ ld
+ nz? jmp findnext
+ jmp prime
+
+mark:
+ dup
+l: 
+ dup
+ ldi 100
+ sub
+ p? jmp done
+ dup
+ dup
+ st
+ over
+ add
+ jmp l
+done:
+ drop
+ ret</textarea>
+                </td>
+                <td style="height: 500px;">
+                    <textarea id="output" readonly></textarea>
+                </td>
+            </tr>
+            <tr>
+                <td>Errors</td>
+                <td colspan="2">
+                    <pre id="stderr"></pre>
+                </td>
+            </tr>
+            <tr>
+                <td>Stats</td>
+                <td colspan="2">
+                    <pre id="stats"></pre>
+                </td>
+            </tr>
+            <tr>
+                <td>Binary</td>
+                <td colspan="2">
+                    <pre id="binary"></pre>
+                </td>
+            </tr>
+            <tr>
+                <td>QR</td>
+                <td colspan="2">
+                    <div id="qr"></div>
+                </td>
+            </tr>
+        </table>
+        <audio id="audio" autoplay>
+            <source src="lap.mp3" type="audio/mpeg">
+        </audio>
+    </body>
+
+
+    <script src="common.js"></script>
+    <script src="assembler.js"></script>
+    <script>        
+
+        function qr(bin) {
+            document.getElementById("qr").innerHTML = "";
+            var qrcode = new QRCode(document.getElementById("qr"), {
+                text: bin,
+                width: 150,
+                height: 150,
+                colorDark : "#040040",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.L
+            });
+        }
+
+
+        function compile() {
+            document.getElementById("output").innerHTML = "";
+            document.getElementById("stderr").innerHTML = "";
+            document.getElementById("stats").innerHTML = "";
+            
+            var a = new Assembler()
+            var ret = a.assemble(input.value);
+
+            document.getElementById("stderr").innerHTML = a.errors.flatMap((msg, i) => `${i}: ${msg}`).join("\n");
+
+            for (var i = 1; i <= a.totalLines(); i++) {
+                document.getElementById("output").innerHTML += (a.debug[i] || []).join("").replace(" ", "_") + "\n";
+            }
+
+            document.getElementById("stats").innerHTML = `${a.bin.length} chars, ${Math.ceil(a.bin.length * 5.5)} bits, ${Math.ceil(a.bin.length * 5.5 / 8)} bytes`;
+            document.getElementById("binary").innerHTML = a.bin;
+
+            qr(a.bin);
+        }
+
+        function uiUpdate() {
+            compile();
+            document.getElementById("lineNos").value = "";
+            let lines = document.getElementById("input").value.split("").filter(x => x == "\n").length;
+            for (let i = 1; i <= lines + 1; i++) {
+                document.getElementById("lineNos").value += i + "\n";
+            }
+        }
+
+        document.getElementById("input").onkeyup = uiUpdate;
+        document.getElementById("input").onscroll = function(event) {
+            document.getElementById("lineNos").scrollTop = event.srcElement.scrollTop;
+            document.getElementById("output").scrollTop = event.srcElement.scrollTop;
+        }
+        var triggered;
+        onclick = function(event){
+            let audio = document.getElementById("audio");
+            if (audio.paused) {
+                audio.play();
+            }
+        };
+        
+    </script>
+    <script src="qrcode.min.js"></script>
+    <script>
+        uiUpdate();
+    </script>
+
+</html>
