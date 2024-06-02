@@ -106,7 +106,6 @@ class Assembler {
                 this.#branchInstruction(op, args, 0);
             } else {
                 let encoded = this.#encodeOrDefault(dst, 3, true, 0);
-                console.log(encoded);
                 this.#writeOpcode("ldi_" + encoded.length);
                 encoded.forEach(x => this.#write(x));
             }

@@ -1,10 +1,10 @@
 <html>
     <head>
         <title>QR Assembler</title>
-        <link rel="stylesheet" href="styles.css" type="text/css"></link>
+        <link rel="stylesheet" href="css/styles.css" type="text/css"></link>
         <style>
             body {
-                background-image: url("323.gif");
+                background-image: url("css/323.gif");
             }
             textarea, pre {
                 background: white;
@@ -17,7 +17,7 @@
     </head>
 
     <body>
-        <h1><center>assembler</center></h1>
+        <h1><center>assembler (<a href="docs.html" target="_blank">docs</a>)</a></center></h1>
         <table>
             <tr style="height: 500px;">
                 <td style="height: 500px">
@@ -83,32 +83,26 @@ done:
             <tr>
                 <td>QR</td>
                 <td colspan="2">
-                    <div id="qr"></div>
+                    <div id="qr">
+                        <canvas id="qrcanvas"></canvas>
+                    </div>
                 </td>
             </tr>
         </table>
         <audio id="audio" autoplay>
-            <source src="lap.mp3" type="audio/mpeg">
+            <!-- midi file don't work directly in modern browsers :( -->
+            <source src="css/lap.mp3" type="audio/mpeg">
         </audio>
     </body>
 
 
-    <script src="common.js"></script>
-    <script src="assembler.js"></script>
+    <script src="js/common.js"></script>
+    <script src="js/assembler.js"></script>
+    <script src="js/qrcode.js"></script>
     <script>        
-
         function qr(bin) {
-            document.getElementById("qr").innerHTML = "";
-            var qrcode = new QRCode(document.getElementById("qr"), {
-                text: bin,
-                width: 150,
-                height: 150,
-                colorDark : "#040040",
-                colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.L
-            });
+            QRCode.toCanvas(document.getElementById('qrcanvas'), bin, { errorCorrectionLevel: 'L' });
         }
-
 
         function compile() {
             document.getElementById("output").innerHTML = "";
@@ -153,9 +147,8 @@ done:
         };
         
     </script>
-    <script src="qrcode.min.js"></script>
+    
     <script>
         uiUpdate();
     </script>
-
 </html>

@@ -28,9 +28,7 @@
     <body>
 
         <marquee direction="right"><h1>QuaRchitecture Reference</h1></marquee>
-        <!-- <img src="genio.gif" style="float: right"> -->
         <h2>Instruction Set Architecture</h2>
-        The ISA is character-oriented. A character is a value taken from ... This is specifically the alphanumeric character set used in QR code encoding.
         <h3>Instruction Encoding</h3>
         <p>
         In the physical layer (as encoded in the QR code in alphanumeric mode), two characters are encoded in 11 bits: so 5.5 bits per character. This 31% less space than two characters stored in byte-mode.
@@ -38,73 +36,7 @@
         <p>
             Each machine instruction consists of an opcode character, followed by an optional argument. The argument is a 1-3 signed or unsigned number encoded in base 44. 
         </p>
-        <h3>Base 44 encoding</h3>
-        <p>
-            Numbers are encoded in base 44:
-        </p>
-        <table>
-            <tr>
-                <th>Characters</th>
-                <th>Range (unsigned)</th>
-                <th>Range (signed)</th>
-            </tr>
-            <tr>
-                <td>1</td>
-                <td>0 .. 43</td>
-                <td>-22 .. 21</td>
-            </tr>
-            <tr>
-                <td>2</td>
-                <td>0 .. 1935</td>
-                <td>-968 .. 967</td>
-            </tr>
-                <tr>
-                <td>3</td>
-                <td>0 .. 85184</td>
-                <td>-42592 .. 42591</td>
-            </tr>
-        </table>
-        <p>
-            Some example encodings:
-        </p>
-        <table>
-            <tr>
-                <th></th>
-                <th>-42592</th>
-                <th>-968</th>
-                <th>-22</th>
-                <th>-2</th>
-                <th>-1</th>
-                <th>0</th>
-                <th>1</th>
-                <th>2</th>
-                <th>21</th>
-                <th>22</th>
-                <th>43</th>
-                <th>44</th>
-                <th>967</th>
-                <th>968</th>
-            </tr>
-            <tr>
-                <th>1s</th>
-            </tr>
-            <tr>
-                <th>1u</th>
-            </tr>
-        </table>
-
-        <h3>Argument types</h3>
-        <p>
-            Each operation consists of an opcode character, followed optionally by an argument of 
-        </p>
-        <dl>
-            <dt>rel1</dt>
-            <dd>a 1 character signed relative offset</dd>
-            <dt>abs2, abs3</dt>
-            <dd>a 2 or 3 character unsigned absolute offset. This can addresses in the range 0-1935</dd>
-            <dd></dd>
-        </dl>
-
+        
 
         <h2>Opcodes</h2>
         <table>
@@ -479,34 +411,20 @@ hop:
                 <td>res n</td>
                 <td>Reserve n bytes, filling with <code>nop</code></td>
             </tr>
-        </table>
-        <h3>Predefined Macros</h3>
-        <p>A number of macros are predefined for convinience
-        </p>
-        <table>
             <tr>
-                <th>Macro</th>
-                <th>Stack Effect</th>
-                <th>Definition</th>
-                <th>Description</th>
+                <td>equ &lt;name&gt;, &lt;val&gt;</td>
+                <td>Assign a number to a name, which can be substitued later</td>
             </tr>
             <tr>
-                <td>nip</td>
-                <td>( a b -- b )</td>
-                <td>swap; drop</td>
-                <td>Drop second on stack</td>
+                <td>equ &lt;name&gt;, &lt;val&gt;</td>
+                <td>Assign a number to a name, which can be substitued later</td>
             </tr>
             <tr>
-                <td>neg</td>
-                <td>( n -- n )</td>
-                <td>ldi 0; swap; sub </td>
-                <td>Rotate top 3 elements on stack</td>
+                <td>const n1[, n2, n3, ...]</td>
+                <td>Store constant value(s) at the end of program memory. The address of the value(s) in program memory can be referenced by &lt;name&gt;</td>
             </tr>
         </table>
-
-        <pre>
-
-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ$%*+-./:
+        
 
     </body>
 </html>
