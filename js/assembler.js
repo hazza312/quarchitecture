@@ -1,4 +1,12 @@
-class Assembler {
+import {
+    OPCODE_TO_CHAR,
+    encodeNum,
+    encodeNumUnsigned,
+    encodeNumFixed,
+    SYS_CALLS, decodeNum
+} from "./common.js";
+
+export class Assembler {
     #LINE_REGEX = /^((\w+):)?\s*(((\w+)\s*\?)?\s*(\w+)(\s+(.+?))?)?\s*(\s+(#.*))?$/;
     #lineNo = 1;
     #pc = 0;
@@ -10,7 +18,6 @@ class Assembler {
     constructor() {
         this.errors = [];
         this.debug = [];
-        this.output = [];
         this.labels = new Map();
         this.bin = [];
     }
@@ -118,7 +125,7 @@ class Assembler {
             this.#write(this.#encodeOrDefault(val, 1, false, 0));
 
         } else if (["ldz", "stz"].includes(op)) {
-            let val = this.#expectInt(op, args, 0);
+            let val = this.#getAbsoluteOffset(args, 0);
             this.#writeOpcode(op);
             this.#write(this.#encodeOrDefault(val, 1, false, 0));
 
@@ -248,5 +255,36 @@ class Assembler {
 
         return null;
     }
-    
+
+    debugMap(input) {
+        let out = '';
+
+        let lines = input.split('\n');
+        let pc = 0;
+        out += 'TEXT\n\n';
+        for (let i = 1; i <= lines.length; i++) {
+            let prgPart = this.debug[i]
+                ? `${pc.toString().padStart(5, '0')} ${this.debug[i].join('').padEnd(10, ' ')}`
+                : ''.padStart(16, ' ');
+
+            out += `${prgPart}  ${i.toString().padStart(5, ' ')}  ${lines[i-1]}\n`;
+            pc += (this.debug[i] || []).length;
+        }
+        out += '\nCONSTANTS\n';
+        let consts = this.#consts.entries().map(([k, v]) => [v, k]).toArray().sort(x => x[0]);
+        for (let i = 0; i < consts.length; i++) {
+            let [startOffset, name] = consts[i];
+            let endOffset = i+1 == consts.length ? this.#constpool.length : consts[i+1][0];
+
+            for (let j = startOffset; j < endOffset; j += 2) {
+                let constVal = this.#constpool.slice(j, j+2);
+                let val = `${constVal} (${decodeNum(constVal.split(''), true)})`.padEnd(18, ' ');
+                let idxPart = endOffset == startOffset + 2 ? '' : `[${Math.floor((j-startOffset)/2)}]`;
+                out += `${pc.toString().padStart(5, '0')} ${val} ${name}${idxPart}\n`;
+
+                pc += 2;
+            }
+        }
+        return out;
+    }
 }
