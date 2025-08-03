@@ -30,7 +30,3 @@ _correctNum:
   ldi 2024 # 45 * 45 - 1
   add
   ret
-
-dummyData:
- shr
- or
