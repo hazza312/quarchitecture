@@ -7,9 +7,11 @@ equ zvCurrByte, 0
 equ zvCurrBit, 1
 equ zvQrDataStart, 2
 equ zvQrDataSize, 3
-
+ # lookup tables (populated at runtime)
 equ logLut, 44
 equ expLut, 300
+ # buffers
+equ polyBase, 556
 equ byteBufferStart, 1000
 
  # initialise variables
