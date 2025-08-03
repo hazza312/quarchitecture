@@ -1,10 +1,7 @@
- # FILE: 302_polyMul.asm #####################################################
- # this one is not used (plain polynomial multiplication) the version used
- # in the error correction logic is with GF arithmetic, this version is
- # kept as a reference & for debugging
+ # FILE: 303_gfPolyMul.asm ###################################################
 
-polyMul: # ( paddr psize n -- )
- # a simplified version of polynomial multiplication that takes a polynomial and multiplies by (x + n)
+
+gfPolyMul: # ( paddr psize n -- )
  # put n on the side for later
  # note that psize should be total "capacity" of polynomial (not current order)
  tor
@@ -14,12 +11,12 @@ polyMul: # ( paddr psize n -- )
  # multiplying by 1x, shift each element one spot in the coefficient array
  dec
  tor
-l302:
+l303:
  dup
  rtop
  add
- call shift
- loop l302
+ call gfShift
+ loop l303
  drop
 
  tos
@@ -29,20 +26,20 @@ l302:
  # now that we have shifted one spot, need to do A[i] += A[i+1] * n
  tor
  swap
-l302b:
+l303b:
  # ( n paddr )
  over
  over
- call mulElement
+ call gfMulElement
  inc
- loop l302b
+ loop l303b
 
  drop
  drop
  ret
 
 
-shift: # ( paddr )
+gfShift: # ( paddr )
  dup
  dec
  ld
@@ -51,14 +48,14 @@ shift: # ( paddr )
  st
  ret
 
-mulElement: # ( n paddr -- )
+gfMulElement: # ( n paddr -- )
  dup
  inc
  ld
  # ( n paddr A[i+1] )
  rot
  # ( paddr A[i+1] n )
- mul
+ call gfMul
  # ( paddr A[i+1]*n )
  swap
  # ( A[i+1]*n paddr )
@@ -67,7 +64,7 @@ mulElement: # ( n paddr -- )
  # ( A[i+1]*n paddr A[i])
  rot
  # ( paddr A[i] A[i+1]*n )
- add
+ xor
  # ( paddr A[i]+A[i+1]*n )
  swap
  # ( A[i]+A[i+1]*n paddr )

@@ -1,13 +1,16 @@
  # FILE: 301_gfMulDiv.asm ####################################################
 gfMul: # ( a b -- n )
+ dup
+ z? jmp f301mulreturn0
  over
- over
- and
- z? jmp 301mulreturn0
+ z? jmp f301mulreturn0
+
+ # ( a b )
  # LOG[b]
  ldi logLut
  add
  ld
+ swap
  # LOG[a]
  ldi logLut
  add
@@ -23,7 +26,7 @@ gfMul: # ( a b -- n )
  ld
  ret
 
-301mulreturn0:
+f301mulreturn0:
  and
  ret
 

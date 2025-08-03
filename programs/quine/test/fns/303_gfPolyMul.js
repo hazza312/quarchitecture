@@ -13,10 +13,11 @@ function polyMulTest(polynomial, n, expect) {
         testCode += `ldi ${c}; ldi ${A}; st;`;
         A += 1;
     }
-    testCode += `ldi ${Astart}; ldi ${polynomial.length}; ldi ${n}; call polyMul`;
+    testCode += `call expLogLut; ldi ${Astart}; ldi ${polynomial.length}; ldi ${n}; call gfPolyMul`;
     let ret = assembleTestCode(testCode);
-    let state = new VM({program: ret}).run();
-    console.log(state);
+    let vm = new VM({program: ret});
+    var state = vm.run();
+
     let mem = state.mem.slice(Astart, Astart + polynomial.length);
     assert.deepEqual(mem, expect);
 }
@@ -34,5 +35,10 @@ test('x * (x + 1) => x^2 + x', () => {
 })
 
 test('(2x^2 + 3x^1 + 1)(x + 2) => 2x^3 + 7x^2 + 7x^1 + 2', () => {
-    polyMulTest([1, 3, 2, 0], 2, [2, 7, 7, 2]);
+    polyMulTest([1, 3, 2, 0], 2,  [ 2, 7, 7, 2 ]);
 })
+
+test('harder', () => {
+    polyMulTest([76, 12, 9, 3, 125, 8, 1, 0], 73,  [252, 7, 55, 210, 135, 15, 65, 1]);
+})
+
