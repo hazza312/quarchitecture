@@ -18,13 +18,11 @@ l300:
 
 storeValueExponent: # (value exponent)
  over
- over
- # (v e v e)
+ over           # v e v e
  swap
  ldi logLut
  add
- st
- # ( v e )
+ st             # v e
  ldi expLut
  add
  st

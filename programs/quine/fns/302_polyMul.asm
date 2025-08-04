@@ -54,22 +54,14 @@ shift: # ( paddr )
 mulElement: # ( n paddr -- )
  dup
  inc
- ld
- # ( n paddr A[i+1] )
- rot
- # ( paddr A[i+1] n )
- mul
- # ( paddr A[i+1]*n )
- swap
- # ( A[i+1]*n paddr )
+ ld         # n paddr A[i+1]
+ rot        # paddr A[i+1] n
+ mul        # paddr A[i+1]*n
+ swap       # A[i+1]*n paddr
  dup
- ld
- # ( A[i+1]*n paddr A[i])
- rot
- # ( paddr A[i] A[i+1]*n )
- add
- # ( paddr A[i]+A[i+1]*n )
- swap
- # ( A[i]+A[i+1]*n paddr )
+ ld         # A[i+1]*n paddr A[i]
+ rot        # paddr A[i] A[i+1]*n
+ add        # paddr A[i]+A[i+1]*n
+ swap       # A[i]+A[i+1]*n paddr
  st
  ret

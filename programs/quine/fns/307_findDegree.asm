@@ -2,24 +2,16 @@
  # finds the degree of a polynomial
 
 findDegree: # ( poly size -- d )
- dec
- # base size-1
+ dec                        # base size-1
  tor
- dup
- # base base
+ dup                        # base base
  rtop
- add
- # base ptr
-l307:
- # base ptr
- dup
- # base ptr ptr
- ld
- # base ptr val
- nz? jmp l307earlyreturn
- # base ptr
- dec
- # base ptr-1
+ add                        # base ptr
+l307:                       # base ptr
+ dup                        # base ptr ptr
+ ld                         # base ptr val
+ nz? jmp l307earlyreturn    # base ptr
+ dec                        # base ptr-1
  loop l307
  sub
  dec
