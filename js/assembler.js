@@ -7,7 +7,7 @@ import {
 } from "./common.js";
 
 export class Assembler {
-    #LINE_REGEX = /^((\w+):)?\s*(((\w+)\s*\?)?\s*(\w+)(\s+(.+?))?)?\s*(\s+(#.*))?$/;
+    #LINE_REGEX = /^((\w+):)?\s*(((\w+)\s*\?)?\s*(\w+)(\s+(.+?))?)?\s*((^|\s+)(#.*))?$/;
     #lineNo = 1;
     #pc = 0;
     #constpool = "";
@@ -63,7 +63,9 @@ export class Assembler {
         let label = match[2];
         let cnd = match[5];
         let op = match[6];
-        let args = match[8]?.split(",").map(x => x.trim()) || [];
+        let args = match[8]?.startsWith('#')
+            ? []
+            : match[8]?.split(",").map(x => x.trim()) || [];
 
         if (label) this.labels.set(label, this.#pc);
         if (cnd) this.#compileCondition(cnd);
@@ -257,7 +259,7 @@ export class Assembler {
     }
 
     debugMap(input) {
-        let out = '';
+        let out = '' + this.bin;
 
         let lines = input.split('\n');
         let pc = 0;
