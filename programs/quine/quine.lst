@@ -1,0 +1,550 @@
+PAMU0PCAU3MK0ZP0153IVWGM$0WP017ZP016IQ::03IT1O84EMN1T0RO19CT0ST10U1IO0U1T00U0I1+W%AO1DM/0NYXIO2O4MX1T3O9MX1T3O261+T2WMA0OBMX100NWT3O1DEKD3MK0XO6MX1IXIPT5+O1MF4W%M54M 3NWXIYYZP:03SPU63SIPU5Z4PU57IO19WPU54GIPF6BIWEKH5YEKH5P:03RZP:03R3PU57PU63RIDIP:03RPT55ZP:03R3PU57PU63RI+YY1+W%3MT6N$X*Z+ZYYMZ60N$XXIW1RZSIW0R$MU4ZWR$BZSIO1PGCS1+PGCPW0%PU63RM06NSI1+%3YRYS1Z0ZNZI1+W%3WRFKI81N 41I*X42IYZM18UOUNYZM18+UM/.%MG9N*%TO04EKD9I*XIWTM3RTNTO3R6TO+YZ%M.91N XITNR5ZTM3WR$4ZSITEXT
+
+                      1   # FILE: 000_GLOBALS.ASM #####################################################
+                      2  
+                      3   # memory address layout
+                      4   # global z variables
+                      5  equ zPageVariables, 0
+                      6  equ zvCurrByte, 0
+                      7  equ zvCurrBit, 1
+                      8  equ zvQrDataStart, 2
+                      9  equ zvQrDataSize, 3
+                     10   # lookup tables (populated at runtime)
+                     11  equ logLut, 44
+                     12  equ expLut, 300
+                     13   # buffers
+                     14  equ polyBase, 556
+                     15  equ byteBufferStart, 1000
+                     16  
+                     17   # initialise variables
+00000 PAM            18  ldi byteBufferStart
+00003 U0             19  stz zvCurrByte
+                     20  
+00005 PCA            21  ldi endProgMemory
+00008 U3             22  stz zvQrDataSize
+                     23  
+                     24   # FILE: 100_main.asm ########################################################
+                     25   # THIS IS A PLACEHOLDER FOR MAIN APPLICATION
+                     26  
+                     27   # FILE: 101_read11BitNumber.asm #############################################
+                     28   # TODO this could be simplified the two fns together,
+                     29   # but kept separate for now to make debugging easier
+                     30  
+                     31  read11BitNumber: # ( addr -- n )
+                     32   # read next 11-bit value (P27)
+00010 MK0            33   call readPmTwoChars
+00013 Z              34   swap
+00014 P01            35   ldi 45
+00017 5              36   mul 
+00018 3              37   add
+00019 I              38   ret
+                     39  
+                     40  readPmTwoChars: #( addr -- c1 c2 )
+                     41   # lpm command reads a 2char signed number
+                     42   # this reads and interpets as unsigned
+                     43   # pushing the two chars (hi lo) on the stack 
+00020 V              44   ldp
+00021 W              45   dup
+00022 GM$0           46   m ? call _correctNum
+00026 W              47   dup
+00027 P01            48   ldi 45
+00030 7              49   mod
+00031 Z              50   swap
+00032 P01            51   ldi 45
+00035 6              52   div
+00036 I              53   ret
+                     54  
+                     55  _correctNum:
+00037 Q::0           56    ldi 2024 # 45 * 45 - 1
+00041 3              57    add
+00042 I              58    ret
+                     59  
+                     60   # FILE: 102_appendBitToBitString.asm ########################################
+                     61   # DEFINES:
+                     62   #   appendBitToBitString( 0/1 -- )
+                     63   # USES:
+                     64   #   000 zvCurrByte, state initialised to beginning of output buffer
+                     65   #   000 zvCurrBit, state initialised to 0, next bit to be written in current byte
+                     66  
+                     67  appendBitToBitString: # ( 0/1 -- )
+00043 T1             68   ldz zvCurrBit         # load the current bit
+00045 O8             69   ldi 8                 # check if we have filled 8 bits
+00047 4              70   sub
+00048 EMN1           71   z? call _advanceByte  # if so, advance to next byte
+00052 T0             72   ldz zvCurrByte        # load address of current byte
+                     73                         # load the value, shift left 1 bit
+00054 R              74   ld
+00055 O1             75   ldi 1
+00057 9              76   shl
+                     77                         # append the current bit and store
+00058 C              78   or
+00059 T0             79   ldz zvCurrByte
+00061 S              80   st
+                     81                         # increment the bit count and store
+00062 T1             82   ldz zvCurrBit
+00064 0              83   inc
+00065 U1             84   stz zvCurrBit
+00067 I              85   ret
+                     86  
+                     87  _advanceByte:
+00068 O0             88   ldi 0                 # reset zvCurrBit to 0
+00070 U1             89   stz zvCurrBit
+00072 T0             90   ldz zvCurrByte        # increment the byte ptr and store back
+00074 0              91   inc
+00075 U0             92   stz zvCurrByte
+00077 I              93   ret
+                     94  
+                     95   # FILE: 103_appendBitsToBitString.asm #######################################
+                     96  appendBitsToBitString: # ( val nBits -- )
+                     97   # appends for a single value the bits, left padded
+                     98   # place nBits on rstack and iteratively call appendBitToBitString masking
+                     99   # for the correct bit
+                    100  
+00078 1             101   dec
+00079 +             102   tor
+                    103  l103:
+00080 W             104   dup
+00081 %             105   rtop
+00082 A             106   shr
+00083 O1            107   ldi 1
+00085 D             108   and
+00086 M/0           109   call appendBitToBitString
+00089 NY            110   loop l103
+00091 X             111   drop
+00092 I             112   ret
+                    113  
+                    114   # FILE: 103_writeQrHeaders.asm ##############################################
+                    115   # USES:
+                    116   #   000 zvQrDataSize
+                    117   #   000 zvQrDataStart
+                    118   #   103 appendBitsToBitString
+                    119  
+                    120  writeQrHeaders: # ( -- )
+                    121   # first write the mode indicator
+00093 O2            122   ldi 2 # mode 0b0010 is alphanumeric mode (P 23)
+00095 O4            123   ldi 4
+00097 MX1           124   call appendBitsToBitString
+                    125  
+                    126   # then add the character count
+                    127   # TODO: number of bits is determined by QR "verison"
+                    128   #  (https://www.qrcode.com/en/about/version.html)
+                    129   # V1-9 => 9 bits
+                    130   # V10-26 => 11 bits
+                    131   # V27-40 => 13 bits
+                    132  
+00100 T3            133   ldz zvQrDataSize
+00102 O9            134   ldi 9
+00104 MX1           135   call appendBitsToBitString
+                    136  
+                    137   # then write qr code stream
+                    138   # for all the pairs of alphanumeric characters, write them as 11bit values
+                    139   # loop dataSize/2 times
+00107 T3            140   ldz zvQrDataSize
+00109 O2            141   ldi 2
+00111 6             142   div
+00112 1             143   dec
+00113 +             144   tor
+                    145   # start at beginning of data
+00114 T2            146   ldz zvQrDataStart
+                    147  l104:
+00116 W             148   dup
+00117 MA0           149   call read11BitNumber
+00120 OB            150   ldi 11
+00122 MX1           151   call appendBitsToBitString
+                    152   # move pointer to next pair
+00125 0             153   inc
+00126 0             154   inc
+00127 NW            155   loop l104
+                    156  
+                    157   # ok, if the data size is odd, we need to pad the last one with 6 bits
+00129 T3            158   ldz zvQrDataSize
+00131 O1            159   ldi 1
+00133 D             160   and
+00134 EKD3          161   z? jmp d103
+00138 MK0           162   call readPmTwoChars
+00141 X             163   drop
+00142 O6            164   ldi 6
+00144 MX1           165   call appendBitsToBitString
+00147 I             166   ret
+                    167  
+                    168  d103:
+00148 X             169   drop
+00149 I             170   ret
+                    171  
+                    172   # FILE: 200_QR_CODE_LOGIC.asm ###############################################
+                    173   # Logic here some basic definitions
+                    174   # FILE: 201_qrHeaderBitsInCharacterCount.asm ################################
+                    175  
+                    176  qrHeaderBitsInCharacterCount: # ( -- n)
+                    177   # assuming alphanumeric mode, see P23
+                    178  
+                    179  
+                    180   # FILE: 300_expLogLut.asm ###################################################
+                    181   # generate lookup tables as defined in https://dev.to/maxart2501/let-s-develop-a-qr-code-generator-part-iii-error-correction-1kbm
+                    182  
+                    183  expLogLut:
+00150 PT5           184   ldi 254
+00153 +             185   tor
+00154 O1            186   ldi 1 # initial value
+                    187  l300:
+00156 MF4           188   call nextValue
+00159 W             189   dup
+                    190   # get exponent from loop index
+00160 %             191   rtop
+00161 M54           192   call loopIdxToExponent
+00164 M 3           193   call storeValueExponent
+00167 NW            194   loop l300
+00169 X             195   drop
+00170 I             196   ret
+                    197  
+                    198  storeValueExponent: # (value exponent)
+00171 Y             199   over
+00172 Y             200   over           # v e v e
+00173 Z             201   swap
+00174 P:0           202   ldi logLut
+00177 3             203   add
+00178 S             204   st             # v e
+00179 PU6           205   ldi expLut
+00182 3             206   add
+00183 S             207   st
+00184 I             208   ret
+                    209  
+                    210  
+                    211  loopIdxToExponent: # ( n -- n)
+00185 PU5           212   ldi 255
+00188 Z             213   swap
+00189 4             214   sub
+00190 PU5           215   ldi 255
+00193 7             216   mod
+00194 I             217   ret
+                    218  
+                    219  nextValue: # ( n -- n )
+00195 O1            220   ldi 1
+00197 9             221   shl
+                    222   # if > 255, xor with 285
+00198 W             223   dup
+00199 PU5           224   ldi 255
+00202 4             225   sub
+00203 GI            226   m? ret
+00205 PF6           227   ldi 285
+00208 B             228   xor
+00209 I             229   ret
+                    230   # FILE: 301_gfMulDiv.asm ####################################################
+                    231  gfMul: # ( a b -- n )
+00210 W             232   dup
+00211 EKH5          233   z? jmp f301mulreturn0
+00215 Y             234   over
+00216 EKH5          235   z? jmp f301mulreturn0
+                    236  
+                    237   # ( a b )
+                    238   # LOG[b]
+00220 P:0           239   ldi logLut
+00223 3             240   add
+00224 R             241   ld
+00225 Z             242   swap
+                    243   # LOG[a]
+00226 P:0           244   ldi logLut
+00229 3             245   add
+00230 R             246   ld
+                    247   # LOG[a] + LOG[b]
+00231 3             248   add
+                    249   # (LOG[a] + LOG[b]) % 255
+00232 PU5           250   ldi 255
+00235 7             251   mod
+                    252   # EXP[(LOG[a] + LOG[b]) % 255]
+00236 PU6           253   ldi expLut
+00239 3             254   add
+00240 R             255   ld
+00241 I             256   ret
+                    257  
+                    258  f301mulreturn0:
+00242 D             259   and
+00243 I             260   ret
+                    261  
+                    262  gfDiv: # ( a b -- n )
+                    263   # LOG[b]
+00244 P:0           264   ldi logLut
+00247 3             265   add
+00248 R             266   ld
+                    267   # LOG[b] * 254
+00249 PT5           268   ldi 254
+00252 5             269   mul
+00253 Z             270   swap
+                    271   # LOG[a]
+00254 P:0           272   ldi logLut
+00257 3             273   add
+00258 R             274   ld
+                    275   # LOG[a] + LOG[b] * 254
+00259 3             276   add
+                    277   # (LOG[a] + LOG[b] * 254) % 255
+00260 PU5           278   ldi 255
+00263 7             279   mod
+                    280   # EXP[(LOG[a] + LOG[b] * 254) % 255]
+00264 PU6           281   ldi expLut
+00267 3             282   add
+00268 R             283   ld
+00269 I             284   ret
+                    285  
+                    286  
+                    287   # FILE: 303_gfPolyMul.asm ###################################################
+                    288  
+                    289  
+                    290  gfPolyMul: # ( paddr psize n -- )
+                    291   # put n on the side for later
+                    292   # note that psize should be total "capacity" of polynomial (not current order)
+00270 +             293   tor
+00271 Y             294   over
+00272 Y             295   over
+                    296   # ( paddr pszie paddr psize )
+                    297   # multiplying by 1x, shift each element one spot in the coefficient array
+00273 1             298   dec
+00274 +             299   tor
+                    300  l303:
+00275 W             301   dup
+00276 %             302   rtop
+00277 3             303   add
+00278 MT6           304   call gfShift
+00281 N$            305   loop l303
+00283 X             306   drop
+                    307  
+00284 *             308   tos
+00285 Z             309   swap
+                    310  
+                    311   # ( paddr n psize )
+                    312   # now that we have shifted one spot, need to do A[i] += A[i+1] * n
+00286 +             313   tor
+00287 Z             314   swap
+                    315  l303b:
+                    316   # ( n paddr )
+00288 Y             317   over
+00289 Y             318   over
+00290 MZ6           319   call gfMulElement
+00293 0             320   inc
+00294 N$            321   loop l303b
+                    322  
+00296 X             323   drop
+00297 X             324   drop
+00298 I             325   ret
+                    326  
+                    327  
+                    328  gfShift: # ( paddr )
+00299 W             329   dup
+00300 1             330   dec
+00301 R             331   ld
+                    332   # ( paddr p[n-1] )
+00302 Z             333   swap
+00303 S             334   st
+00304 I             335   ret
+                    336  
+                    337  gfMulElement: # ( n paddr -- )
+00305 W             338   dup
+00306 0             339   inc
+00307 R             340   ld
+                    341   # ( n paddr A[i+1] )
+00308 $             342   rot
+                    343   # ( paddr A[i+1] n )
+00309 MU4           344   call gfMul
+                    345   # ( paddr A[i+1]*n )
+00312 Z             346   swap
+                    347   # ( A[i+1]*n paddr )
+00313 W             348   dup
+00314 R             349   ld
+                    350   # ( A[i+1]*n paddr A[i])
+00315 $             351   rot
+                    352   # ( paddr A[i] A[i+1]*n )
+00316 B             353   xor
+                    354   # ( paddr A[i]+A[i+1]*n )
+00317 Z             355   swap
+                    356   # ( A[i]+A[i+1]*n paddr )
+00318 S             357   st
+00319 I             358   ret
+                    359   # FILE: 304_generatorPoly.asm ###############################################
+                    360  
+                    361  generatorPoly: # ( degree )
+                    362   # set initial polynomial 1x^0
+00320 O1            363   ldi 1
+00322 PGC           364   ldi polyBase
+00325 S             365   st
+                    366  
+00326 1             367   dec
+00327 +             368   tor
+                    369  l304:
+                    370   # paddr
+00328 PGC           371   ldi polyBase
+                    372  
+                    373   # psize, TODO check what max size could be
+00331 PW0           374   ldi 32
+                    375  
+                    376   # EXP[index]
+00334 %             377   rtop
+00335 PU6           378   ldi expLut
+00338 3             379   add
+00339 R             380   ld
+                    381  
+00340 M06           382   call gfPolyMul
+00343 NS            383   loop l304
+00345 I             384   ret
+                    385  
+                    386   # FILE: 306_copyBufReverse.asm ###############################################
+                    387   # copies buffer from a => b while reversing it
+                    388  
+                    389  copyBufReverse: # ( src dst size -- )
+00346 1             390   dec
+00347 +             391   tor
+00348 %             392   rtop
+00349 3             393   add
+                    394  
+                    395  l306:           # A B
+00350 Y             396   over           # A B A
+00351 R             397   ld             # A B Ad
+00352 Y             398   over           # A B Ad B
+00353 S             399   st             # A B
+00354 1             400   dec            # A B-1
+00355 Z             401   swap           # B-1 A
+00356 0             402   inc            # B-1 A+1
+00357 Z             403   swap           # A+1 B-1
+00358 NZ            404   loop l306
+00360 I             405   ret
+                    406  
+                    407   # FILE: 307_findDegree.asm ###############################################
+                    408   # finds the degree of a polynomial
+                    409  
+                    410  findDegree: # ( poly size -- d )
+00361 1             411   dec                        # base size-1
+00362 +             412   tor
+00363 W             413   dup                        # base base
+00364 %             414   rtop
+00365 3             415   add                        # base ptr
+                    416  l307:                       # base ptr
+00366 W             417   dup                        # base ptr ptr
+00367 R             418   ld                         # base ptr val
+00368 FKI8          419   nz? jmp l307earlyreturn    # base ptr
+00372 1             420   dec                        # base ptr-1
+00373 N             421   loop l307
+00375 4             422   sub
+00376 1             423   dec
+                    424   # 0
+                    425   # TODO maybe would be useful to return -1 instead
+00377 I             426   ret
+                    427  
+                    428  l307earlyreturn:
+00378 *             429   tos
+00379 X             430   drop
+00380 4             431   sub
+00381 2             432   neg
+                    433   # n
+00382 I             434   ret
+                    435  # FILE: polyDiv.asm ###############################################
+                    436  # does polynomial division
+                    437  # translated from this C prototype (probably has bugs)
+                    438  
+                    439  # int p[] = {4, 5, 8, 28}; // 1 + 2x + 3x^2
+                    440  # int d[] = {2, 7, 2}; // 1 + x
+                    441  
+                    442  # int pHighestPower = sizeof(p)/sizeof(int) - 1;
+                    443  # int dLeadingPower = sizeof(d)/sizeof(int) - 1;
+                    444  
+                    445  # for (int pLeadingPower = pHighestPower; pLeadingPower >= dLeadingPower; pLeadingPower--) {
+                    446  #    int q = p[pLeadingPower] / d[dLeadingPower];
+                    447  
+                    448  #     for (int pi = pLeadingPower, di = dLeadingPower; di >= 0; di--, pi--) {
+                    449  #         p[pi] = p[pi] - q * d[di];
+                    450  #     }
+                    451  # }
+                    452  
+                    453  # return 0;
+                    454  
+                    455   # some working variables
+                    456  equ zvDividend, 22
+                    457  equ zvDivisor, 23
+                    458  equ zvDivisorOrder, 24
+                    459  
+                    460  polyDiv: # ( p pSize d2 dSize )
+                    461   # let's do away with size and find the leading powers of each
+00383 Y             462   over
+00384 Z             463   swap               # p pSize d d dSize
+00385 M18           464   call findDegree    # p pSize d dOrder
+                    465  
+                    466                      # put divisor away for now
+00388 UO            467   stz zvDivisorOrder
+00390 UN            468   stz zvDivisor
+                    469  
+                    470   # p pSize
+00392 Y             471   over
+00393 Z             472   swap
+                    473   # p p pSize
+00394 M18           474   call findDegree
+                    475   # p pDegree
+                    476  
+00397 +             477   tor
+                    478   # pHighestPower is the loop counter on the return stack
+00398 UM            479   stz zvDividend
+                    480  
+                    481   # empty param stack, let's party
+00400 /.            482   sys DMP
+                    483  l308outer:
+00402 %             484   rtop                       # plp
+00403 MG9           485   call l308outerbody         # --
+00406 N*            486   loop l308outer             # --
+00408 %             487   rtop                       # plp
+00409 TO            488   ldz zvDivisorOrder         # plp dorder
+00411 0             489   inc                        # plp dorder+1
+00412 4             490   sub                        # plp-dorder+1
+00413 EKD9          491   z? jmp l308earlydone
+00417 I             492   ret
+                    493  
+                    494  l308earlydone:
+00418 *             495   tos
+00419 X             496   drop
+00420 I             497   ret
+                    498  
+                    499  l308outerbody: # ( pLeadingPower -- )
+                    500   # q = p[pLeadingPower] / d[dLeadingPower]
+00421 W             501   dup                        # plp plp
+00422 TM            502   ldz zvDividend             # plp plp p
+00424 3             503   add                        # plp &p[plp]
+00425 R             504   ld                         # plp p[plp]
+                    505  
+00426 TN            506   ldz zvDivisor              # plp p[plp] d
+00428 TO            507   ldz zvDivisorOrder         # plp p[plp] d dlp
+00430 3             508   add                        # plp p[plp] &d[dlp]
+00431 R             509   ld                         # plp p[plp] d[dlp]
+00432 6             510   div                        # plp q
+                    511  
+00433 TO            512   ldz zvDivisorOrder         # plp q dlp
+00435 +             513   tor                        # pi q R: di
+                    514  l308inner:
+00436 Y             515   over                       # pi q pi
+00437 Z             516   swap                       # pi pi q
+00438 %             517   rtop                       # pi pi q di
+00439 M.9           518   call l308innerbody         # pi
+00442 1             519   dec                        # pi-1
+00443 N             520   loop l308inner
+00445 X             521   drop
+00446 I             522   ret
+                    523  
+                    524  
+                    525  l308innerbody: # ( pi q di -- )
+00447 TN            526   ldz zvDivisor      # pi q &d[di]
+00449 R             527   ld                 # pi q d[di]
+00450 5             528   mul                # pi q*d[di]
+00451 Z             529   swap               # q*d[di] pi
+00452 TM            530   ldz zvDividend     # q*d[di] pi p
+00454 3             531   add                # q*d[di] &pi[p]
+00455 W             532   dup                # q*d[di] &pi[p] &pi[p]
+00456 R             533   ld                 # q*d[di] &pi[p] pi[p]
+00457 $             534   rot                # &pi[p] pi[p] q*d[di]
+00458 4             535   sub                # &pi[p] pi[p]-q*d[di]
+00459 Z             536   swap               # pi[p]-q*d[di] &pi[p]
+00460 S             537   st                 # --
+00461 I             538   ret
+                    539  
+                    540  
+                    541   # FILE: 999_endProgMemory.asm ###############################################
+                    542   # DEFINES:
+                    543   #   LABEL endProgMemory the end of program memory
+                    544  
+                    545  endProgMemory:
+                    546  
+
+CONSTANTS
