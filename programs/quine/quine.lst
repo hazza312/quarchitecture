@@ -1,4 +1,4 @@
-PAMU0PCAU3MK0ZP0153IVWGM$0WP017ZP016IQ::03IT1O84EMN1T0RO19CT0ST10U1IO0U1T00U0I1+W%AO1DM/0NYXIO2O4MX1T3O9MX1T3O261+T2WMA0OBMX100NWT3O1DEKD3MK0XO6MX1IXIPT5+O1MF4W%M54M 3NWXIYYZP:03SPU63SIPU5Z4PU57IO19WPU54GIPF6BIWEKH5YEKH5P:03RZP:03R3PU57PU63RIDIP:03RPT55ZP:03R3PU57PU63RI+YY1+W%3MT6N$X*Z+ZYYMZ60N$XXIW1RZSIW0R$MU4ZWR$BZSIO1PGCS1+PGCPW0%PU63RM06NSI1+%3YRYS1Z0ZNZI1+W%3WRFKI81N 41I*X42IYZM18UOUNYZM18+UM/.%MG9N*%TO04EKD9I*XIWTM3RTNTO3R6TO+YZ%M.91N XITNR5ZTM3WR$4ZSITEXT
+PAMU0PMEU3MK0ZP0153IVWGM$0WP017ZP016IQ::03IT1O84EMN1T0RO19CT0ST10U1IO0U1T00U0I1+W%AO1DM/0NYXIO2O4MX1T3O9MX1T3O261+T2WMA0OBMX100NWT3O1DEKD3MK0XO6MX1IXIPT5+O1MF4W%M54M 3NWXIYYZP:03SPU63SIPU5Z4PU57IO19WPU54GIPF6BIO0+YY5EKV5WO1DEK75Y*B+ZO19WPV5DEKO5PF6BZO1AKX4XX*I+YY1+W%3MJ6N$X*Z+ZYYMP60N$XXIW1RZSIW0R$M00ZWR$BZSIO1PGCS1+PGCPW0%PU63RMZ5NSI1+%3YRYS1Z0ZNZI1+W%3WRFK881N 41I*X42IYZM 7UOUNYZM 7+UM%M39%TO4EK09NVI*XIWTM3RTNTO3R6TO+YY%MW9Z1ZNYXXITN3R5ZTM3WR$4ZSIO0O0MLCP:1O0MLCO0P:1MLCMUA.OF+K/A%MPBN I%OC4EK+A%O04EK+A%O34EK+AK AWO46PS05O43ZO47PS05O43/.M8CIYYO5M9DM0D/3IYYO7M9DM0DYYO3M9D0Z0Z/3IO23ZO23ZI1UOUNUMTO+%MX4N*I+TM%3TNTMTN%3TMTO3TN%3TM%3TNTO3O3+/3N-*XITEXT
 
                       1   # FILE: 000_GLOBALS.ASM #####################################################
                       2  
@@ -20,7 +20,7 @@ PAMU0PCAU3MK0ZP0153IVWGM$0WP017ZP016IQ::03IT1O84EMN1T0RO19CT0ST10U1IO0U1T00U0I1+
 00000 PAM            18  ldi byteBufferStart
 00003 U0             19  stz zvCurrByte
                      20  
-00005 PCA            21  ldi endProgMemory
+00005 PME            21  ldi endProgMemory
 00008 U3             22  stz zvQrDataSize
                      23  
                      24   # FILE: 100_main.asm ########################################################
@@ -171,380 +171,519 @@ PAMU0PCAU3MK0ZP0153IVWGM$0WP017ZP016IQ::03IT1O84EMN1T0RO19CT0ST10U1IO0U1T00U0I1+
 00148 X             169   drop
 00149 I             170   ret
                     171  
-                    172   # FILE: 200_QR_CODE_LOGIC.asm ###############################################
-                    173   # Logic here some basic definitions
-                    174   # FILE: 201_qrHeaderBitsInCharacterCount.asm ################################
-                    175  
-                    176  qrHeaderBitsInCharacterCount: # ( -- n)
-                    177   # assuming alphanumeric mode, see P23
-                    178  
-                    179  
-                    180   # FILE: 300_expLogLut.asm ###################################################
-                    181   # generate lookup tables as defined in https://dev.to/maxart2501/let-s-develop-a-qr-code-generator-part-iii-error-correction-1kbm
-                    182  
-                    183  expLogLut:
-00150 PT5           184   ldi 254
-00153 +             185   tor
-00154 O1            186   ldi 1 # initial value
-                    187  l300:
-00156 MF4           188   call nextValue
-00159 W             189   dup
-                    190   # get exponent from loop index
-00160 %             191   rtop
-00161 M54           192   call loopIdxToExponent
-00164 M 3           193   call storeValueExponent
-00167 NW            194   loop l300
-00169 X             195   drop
-00170 I             196   ret
-                    197  
-                    198  storeValueExponent: # (value exponent)
-00171 Y             199   over
-00172 Y             200   over           # v e v e
-00173 Z             201   swap
-00174 P:0           202   ldi logLut
-00177 3             203   add
-00178 S             204   st             # v e
-00179 PU6           205   ldi expLut
-00182 3             206   add
-00183 S             207   st
-00184 I             208   ret
-                    209  
-                    210  
-                    211  loopIdxToExponent: # ( n -- n)
-00185 PU5           212   ldi 255
-00188 Z             213   swap
-00189 4             214   sub
-00190 PU5           215   ldi 255
-00193 7             216   mod
-00194 I             217   ret
-                    218  
-                    219  nextValue: # ( n -- n )
-00195 O1            220   ldi 1
-00197 9             221   shl
-                    222   # if > 255, xor with 285
-00198 W             223   dup
-00199 PU5           224   ldi 255
-00202 4             225   sub
-00203 GI            226   m? ret
-00205 PF6           227   ldi 285
-00208 B             228   xor
-00209 I             229   ret
-                    230   # FILE: 301_gfMulDiv.asm ####################################################
-                    231  gfMul: # ( a b -- n )
-00210 W             232   dup
-00211 EKH5          233   z? jmp f301mulreturn0
-00215 Y             234   over
-00216 EKH5          235   z? jmp f301mulreturn0
-                    236  
-                    237   # ( a b )
-                    238   # LOG[b]
-00220 P:0           239   ldi logLut
-00223 3             240   add
-00224 R             241   ld
-00225 Z             242   swap
-                    243   # LOG[a]
-00226 P:0           244   ldi logLut
-00229 3             245   add
-00230 R             246   ld
-                    247   # LOG[a] + LOG[b]
-00231 3             248   add
-                    249   # (LOG[a] + LOG[b]) % 255
-00232 PU5           250   ldi 255
-00235 7             251   mod
-                    252   # EXP[(LOG[a] + LOG[b]) % 255]
-00236 PU6           253   ldi expLut
-00239 3             254   add
-00240 R             255   ld
-00241 I             256   ret
-                    257  
-                    258  f301mulreturn0:
-00242 D             259   and
-00243 I             260   ret
-                    261  
-                    262  gfDiv: # ( a b -- n )
-                    263   # LOG[b]
-00244 P:0           264   ldi logLut
-00247 3             265   add
-00248 R             266   ld
-                    267   # LOG[b] * 254
-00249 PT5           268   ldi 254
-00252 5             269   mul
-00253 Z             270   swap
-                    271   # LOG[a]
-00254 P:0           272   ldi logLut
-00257 3             273   add
-00258 R             274   ld
-                    275   # LOG[a] + LOG[b] * 254
-00259 3             276   add
-                    277   # (LOG[a] + LOG[b] * 254) % 255
-00260 PU5           278   ldi 255
-00263 7             279   mod
-                    280   # EXP[(LOG[a] + LOG[b] * 254) % 255]
-00264 PU6           281   ldi expLut
-00267 3             282   add
-00268 R             283   ld
-00269 I             284   ret
-                    285  
-                    286  
-                    287   # FILE: 303_gfPolyMul.asm ###################################################
+                    172   # FILE: 201_qrHeaderBitsInCharacterCount.asm ################################
+                    173  
+                    174  qrHeaderBitsInCharacterCount: # ( -- n)
+                    175   # assuming alphanumeric mode, see P23
+                    176  
+                    177  
+                    178   # FILE: 300_expLogLut.asm ###################################################
+                    179   # generate lookup tables as defined in https://dev.to/maxart2501/let-s-develop-a-qr-code-generator-part-iii-error-correction-1kbm
+                    180  
+                    181  expLogLut:
+00150 PT5           182   ldi 254
+00153 +             183   tor
+00154 O1            184   ldi 1 # initial value
+                    185  l300:
+00156 MF4           186   call nextValue
+00159 W             187   dup
+                    188   # get exponent from loop index
+00160 %             189   rtop
+00161 M54           190   call loopIdxToExponent
+00164 M 3           191   call storeValueExponent
+00167 NW            192   loop l300
+00169 X             193   drop
+00170 I             194   ret
+                    195  
+                    196  storeValueExponent: # (value exponent)
+00171 Y             197   over
+00172 Y             198   over           # v e v e
+00173 Z             199   swap
+00174 P:0           200   ldi logLut
+00177 3             201   add
+00178 S             202   st             # v e
+00179 PU6           203   ldi expLut
+00182 3             204   add
+00183 S             205   st
+00184 I             206   ret
+                    207  
+                    208  
+                    209  loopIdxToExponent: # ( n -- n)
+00185 PU5           210   ldi 255
+00188 Z             211   swap
+00189 4             212   sub
+00190 PU5           213   ldi 255
+00193 7             214   mod
+00194 I             215   ret
+                    216  
+                    217  nextValue: # ( n -- n )
+00195 O1            218   ldi 1
+00197 9             219   shl
+                    220   # if > 255, xor with 285
+00198 W             221   dup
+00199 PU5           222   ldi 255
+00202 4             223   sub
+00203 GI            224   m? ret
+00205 PF6           225   ldi 285
+00208 B             226   xor
+00209 I             227   ret
+                    228   # FILE: 301_gfMulDiv2.asm ####################################################
+                    229   # this version doesn't use lookup tables
+                    230  
+                    231  gfMul2: # ( a b -- n )
+00210 O0            232   ldi 0
+00212 +             233   tor
+                    234  inner:
+00213 Y             235   over # a b a
+00214 Y             236   over # a b a b
+00215 5             237   mul  # a b a*b
+00216 EKV5          238   z? jmp done
+00220 W             239   dup # a b b
+00221 O1            240   ldi 1 # a b b 1
+00223 D             241   and # a b b&1
+00224 EK75          242   z? jmp ctd1
+00228 Y             243   over # a b a
+00229 *             244   tos # a b a p
+00230 B             245   xor # a b a^p
+00231 +             246   tor # a b
+                    247  ctd1:
+00232 Z             248   swap # b a
+00233 O1            249   ldi 1 # b a 1
+00235 9             250   shl # b a<<1
+00236 W             251   dup # b a a
+00237 PV5           252   ldi 256 # b a a
+00240 D             253   and # b a a&256
+00241 EKO5          254   z? jmp ctd2 # b a
+00245 PF6           255   ldi 285  # b a 285
+00248 B             256   xor # b a^285
+                    257  ctd2:
+00249 Z             258   swap # a b
+00250 O1            259   ldi 1 # a b
+00252 A             260   shr # a b>1
+00253 KX4           261   jmp inner
+                    262  done:
+00256 X             263   drop
+00257 X             264   drop
+00258 *             265   tos
+00259 I             266   ret
+                    267  
+                    268   # FILE: 303_gfPolyMul.asm ###################################################
+                    269  
+                    270  
+                    271  gfPolyMul: # ( paddr psize n -- )
+                    272   # put n on the side for later
+                    273   # note that psize should be total "capacity" of polynomial (not current order)
+00260 +             274   tor
+00261 Y             275   over
+00262 Y             276   over
+                    277   # ( paddr pszie paddr psize )
+                    278   # multiplying by 1x, shift each element one spot in the coefficient array
+00263 1             279   dec
+00264 +             280   tor
+                    281  l303:
+00265 W             282   dup
+00266 %             283   rtop
+00267 3             284   add
+00268 MJ6           285   call gfShift
+00271 N$            286   loop l303
+00273 X             287   drop
                     288  
-                    289  
-                    290  gfPolyMul: # ( paddr psize n -- )
-                    291   # put n on the side for later
-                    292   # note that psize should be total "capacity" of polynomial (not current order)
-00270 +             293   tor
-00271 Y             294   over
-00272 Y             295   over
-                    296   # ( paddr pszie paddr psize )
-                    297   # multiplying by 1x, shift each element one spot in the coefficient array
-00273 1             298   dec
-00274 +             299   tor
-                    300  l303:
-00275 W             301   dup
-00276 %             302   rtop
-00277 3             303   add
-00278 MT6           304   call gfShift
-00281 N$            305   loop l303
-00283 X             306   drop
+00274 *             289   tos
+00275 Z             290   swap
+                    291  
+                    292   # ( paddr n psize )
+                    293   # now that we have shifted one spot, need to do A[i] += A[i+1] * n
+00276 +             294   tor
+00277 Z             295   swap
+                    296  l303b:
+                    297   # ( n paddr )
+00278 Y             298   over
+00279 Y             299   over
+00280 MP6           300   call gfMulElement
+00283 0             301   inc
+00284 N$            302   loop l303b
+                    303  
+00286 X             304   drop
+00287 X             305   drop
+00288 I             306   ret
                     307  
-00284 *             308   tos
-00285 Z             309   swap
-                    310  
-                    311   # ( paddr n psize )
-                    312   # now that we have shifted one spot, need to do A[i] += A[i+1] * n
-00286 +             313   tor
-00287 Z             314   swap
-                    315  l303b:
-                    316   # ( n paddr )
-00288 Y             317   over
-00289 Y             318   over
-00290 MZ6           319   call gfMulElement
-00293 0             320   inc
-00294 N$            321   loop l303b
-                    322  
-00296 X             323   drop
-00297 X             324   drop
-00298 I             325   ret
-                    326  
-                    327  
-                    328  gfShift: # ( paddr )
-00299 W             329   dup
-00300 1             330   dec
-00301 R             331   ld
-                    332   # ( paddr p[n-1] )
-00302 Z             333   swap
-00303 S             334   st
-00304 I             335   ret
-                    336  
-                    337  gfMulElement: # ( n paddr -- )
-00305 W             338   dup
-00306 0             339   inc
-00307 R             340   ld
-                    341   # ( n paddr A[i+1] )
-00308 $             342   rot
-                    343   # ( paddr A[i+1] n )
-00309 MU4           344   call gfMul
-                    345   # ( paddr A[i+1]*n )
-00312 Z             346   swap
-                    347   # ( A[i+1]*n paddr )
-00313 W             348   dup
-00314 R             349   ld
-                    350   # ( A[i+1]*n paddr A[i])
-00315 $             351   rot
-                    352   # ( paddr A[i] A[i+1]*n )
-00316 B             353   xor
-                    354   # ( paddr A[i]+A[i+1]*n )
-00317 Z             355   swap
-                    356   # ( A[i]+A[i+1]*n paddr )
-00318 S             357   st
-00319 I             358   ret
-                    359   # FILE: 304_generatorPoly.asm ###############################################
-                    360  
-                    361  generatorPoly: # ( degree )
-                    362   # set initial polynomial 1x^0
-00320 O1            363   ldi 1
-00322 PGC           364   ldi polyBase
-00325 S             365   st
+                    308  
+                    309  gfShift: # ( paddr )
+00289 W             310   dup
+00290 1             311   dec
+00291 R             312   ld
+                    313   # ( paddr p[n-1] )
+00292 Z             314   swap
+00293 S             315   st
+00294 I             316   ret
+                    317  
+                    318  gfMulElement: # ( n paddr -- )
+00295 W             319   dup
+00296 0             320   inc
+00297 R             321   ld
+                    322   # ( n paddr A[i+1] )
+00298 $             323   rot
+                    324   # ( paddr A[i+1] n )
+00299 M00           325   call gfMul
+                    326   # ( paddr A[i+1]*n )
+00302 Z             327   swap
+                    328   # ( A[i+1]*n paddr )
+00303 W             329   dup
+00304 R             330   ld
+                    331   # ( A[i+1]*n paddr A[i])
+00305 $             332   rot
+                    333   # ( paddr A[i] A[i+1]*n )
+00306 B             334   xor
+                    335   # ( paddr A[i]+A[i+1]*n )
+00307 Z             336   swap
+                    337   # ( A[i]+A[i+1]*n paddr )
+00308 S             338   st
+00309 I             339   ret
+                    340   # FILE: 304_generatorPoly.asm ###############################################
+                    341  
+                    342  generatorPoly: # ( degree )
+                    343   # set initial polynomial 1x^0
+00310 O1            344   ldi 1
+00312 PGC           345   ldi polyBase
+00315 S             346   st
+                    347  
+00316 1             348   dec
+00317 +             349   tor
+                    350  l304:
+                    351   # paddr
+00318 PGC           352   ldi polyBase
+                    353  
+                    354   # psize, TODO check what max size could be
+00321 PW0           355   ldi 32
+                    356  
+                    357   # EXP[index]
+00324 %             358   rtop
+00325 PU6           359   ldi expLut
+00328 3             360   add
+00329 R             361   ld
+                    362  
+00330 MZ5           363   call gfPolyMul
+00333 NS            364   loop l304
+00335 I             365   ret
                     366  
-00326 1             367   dec
-00327 +             368   tor
-                    369  l304:
-                    370   # paddr
-00328 PGC           371   ldi polyBase
-                    372  
-                    373   # psize, TODO check what max size could be
-00331 PW0           374   ldi 32
+                    367   # FILE: 306_copyBufReverse.asm ###############################################
+                    368   # copies buffer from a => b while reversing it
+                    369  
+                    370  copyBufReverse: # ( src dst size -- )
+00336 1             371   dec
+00337 +             372   tor
+00338 %             373   rtop
+00339 3             374   add
                     375  
-                    376   # EXP[index]
-00334 %             377   rtop
-00335 PU6           378   ldi expLut
-00338 3             379   add
-00339 R             380   ld
-                    381  
-00340 M06           382   call gfPolyMul
-00343 NS            383   loop l304
-00345 I             384   ret
-                    385  
-                    386   # FILE: 306_copyBufReverse.asm ###############################################
-                    387   # copies buffer from a => b while reversing it
-                    388  
-                    389  copyBufReverse: # ( src dst size -- )
-00346 1             390   dec
-00347 +             391   tor
-00348 %             392   rtop
-00349 3             393   add
-                    394  
-                    395  l306:           # A B
-00350 Y             396   over           # A B A
-00351 R             397   ld             # A B Ad
-00352 Y             398   over           # A B Ad B
-00353 S             399   st             # A B
-00354 1             400   dec            # A B-1
-00355 Z             401   swap           # B-1 A
-00356 0             402   inc            # B-1 A+1
-00357 Z             403   swap           # A+1 B-1
-00358 NZ            404   loop l306
-00360 I             405   ret
-                    406  
-                    407   # FILE: 307_findDegree.asm ###############################################
-                    408   # finds the degree of a polynomial
-                    409  
-                    410  findDegree: # ( poly size -- d )
-00361 1             411   dec                        # base size-1
-00362 +             412   tor
-00363 W             413   dup                        # base base
-00364 %             414   rtop
-00365 3             415   add                        # base ptr
-                    416  l307:                       # base ptr
-00366 W             417   dup                        # base ptr ptr
-00367 R             418   ld                         # base ptr val
-00368 FKI8          419   nz? jmp l307earlyreturn    # base ptr
-00372 1             420   dec                        # base ptr-1
-00373 N             421   loop l307
-00375 4             422   sub
-00376 1             423   dec
-                    424   # 0
-                    425   # TODO maybe would be useful to return -1 instead
-00377 I             426   ret
-                    427  
-                    428  l307earlyreturn:
-00378 *             429   tos
-00379 X             430   drop
-00380 4             431   sub
-00381 2             432   neg
-                    433   # n
-00382 I             434   ret
-                    435  # FILE: polyDiv.asm ###############################################
-                    436  # does polynomial division
-                    437  # translated from this C prototype (probably has bugs)
-                    438  
-                    439  # int p[] = {4, 5, 8, 28}; // 1 + 2x + 3x^2
-                    440  # int d[] = {2, 7, 2}; // 1 + x
-                    441  
-                    442  # int pHighestPower = sizeof(p)/sizeof(int) - 1;
-                    443  # int dLeadingPower = sizeof(d)/sizeof(int) - 1;
-                    444  
-                    445  # for (int pLeadingPower = pHighestPower; pLeadingPower >= dLeadingPower; pLeadingPower--) {
-                    446  #    int q = p[pLeadingPower] / d[dLeadingPower];
-                    447  
-                    448  #     for (int pi = pLeadingPower, di = dLeadingPower; di >= 0; di--, pi--) {
-                    449  #         p[pi] = p[pi] - q * d[di];
-                    450  #     }
-                    451  # }
-                    452  
-                    453  # return 0;
-                    454  
-                    455   # some working variables
-                    456  equ zvDividend, 22
-                    457  equ zvDivisor, 23
-                    458  equ zvDivisorOrder, 24
-                    459  
-                    460  polyDiv: # ( p pSize d2 dSize )
-                    461   # let's do away with size and find the leading powers of each
-00383 Y             462   over
-00384 Z             463   swap               # p pSize d d dSize
-00385 M18           464   call findDegree    # p pSize d dOrder
+                    376  l306:           # A B
+00340 Y             377   over           # A B A
+00341 R             378   ld             # A B Ad
+00342 Y             379   over           # A B Ad B
+00343 S             380   st             # A B
+00344 1             381   dec            # A B-1
+00345 Z             382   swap           # B-1 A
+00346 0             383   inc            # B-1 A+1
+00347 Z             384   swap           # A+1 B-1
+00348 NZ            385   loop l306
+00350 I             386   ret
+                    387  
+                    388   # FILE: 307_findDegree.asm ###############################################
+                    389   # finds the degree of a polynomial
+                    390  
+                    391  findDegree: # ( poly size -- d )
+00351 1             392   dec                        # base size-1
+00352 +             393   tor
+00353 W             394   dup                        # base base
+00354 %             395   rtop
+00355 3             396   add                        # base ptr
+                    397  l307:                       # base ptr
+00356 W             398   dup                        # base ptr ptr
+00357 R             399   ld                         # base ptr val
+00358 FK88          400   nz? jmp l307earlyreturn    # base ptr
+00362 1             401   dec                        # base ptr-1
+00363 N             402   loop l307
+00365 4             403   sub
+00366 1             404   dec
+                    405   # 0
+                    406   # TODO maybe would be useful to return -1 instead
+00367 I             407   ret
+                    408  
+                    409  l307earlyreturn:
+00368 *             410   tos
+00369 X             411   drop
+00370 4             412   sub
+00371 2             413   neg
+                    414   # n
+00372 I             415   ret
+                    416  # FILE: 308_polyDiv.asm ###############################################
+                    417  # does polynomial division
+                    418  # translated from this C prototype (probably has bugs)
+                    419  
+                    420  # int p[] = {4, 5, 8, 28}; // 1 + 2x + 3x^2
+                    421  # int d[] = {2, 7, 2}; // 1 + x
+                    422  
+                    423  # int pHighestPower = sizeof(p)/sizeof(int) - 1;
+                    424  # int dLeadingPower = sizeof(d)/sizeof(int) - 1;
+                    425  
+                    426  # for (int pLeadingPower = pHighestPower; pLeadingPower >= dLeadingPower; pLeadingPower--) {
+                    427  #    int q = p[pLeadingPower] / d[dLeadingPower];
+                    428  
+                    429  #     for (int pi = pLeadingPower, di = dLeadingPower; di >= 0; di--, pi--) {
+                    430  #         p[pi] = p[pi] - q * d[di];
+                    431  #     }
+                    432  # }
+                    433  
+                    434  # return 0;
+                    435  
+                    436  # some working variables
+                    437  equ zvDividend, 22
+                    438  equ zvDivisor, 23
+                    439  equ zvDivisorOrder, 24
+                    440  
+                    441  polyDiv: # ( p pSize d2 dSize )
+                    442   # let's do away with size and find the leading powers of each
+00373 Y             443   over
+00374 Z             444   swap                       # p pSize d d dSize
+00375 M 7           445   call findDegree            # p pSize d dOrder
+                    446                              # put divisor away for now
+00378 UO            447   stz zvDivisorOrder         # p pSize d
+00380 UN            448   stz zvDivisor              # p pSize
+                    449  
+00382 Y             450   over                       # p pSize p
+00383 Z             451   swap                       # p p pSize
+00384 M 7           452   call findDegree            # p pDegree
+00387 +             453   tor                        # p     R: pDegree
+00388 UM            454   stz zvDividend             # --    R: pDegree
+                    455  
+                    456  l308outer:
+00390 %             457   rtop                       # plp
+00391 M39           458   call l308outerbody         # --
+00394 %             459   rtop                       # plp
+00395 TO            460   ldz zvDivisorOrder         # plp dorder
+00397 4             461   sub                        # plp-dorder
+00398 EK09          462   z? jmp l308earlydone       # --
+00402 NV            463   loop l308outer             # --
+00404 I             464   ret
                     465  
-                    466                      # put divisor away for now
-00388 UO            467   stz zvDivisorOrder
-00390 UN            468   stz zvDivisor
-                    469  
-                    470   # p pSize
-00392 Y             471   over
-00393 Z             472   swap
-                    473   # p p pSize
-00394 M18           474   call findDegree
-                    475   # p pDegree
-                    476  
-00397 +             477   tor
-                    478   # pHighestPower is the loop counter on the return stack
-00398 UM            479   stz zvDividend
-                    480  
-                    481   # empty param stack, let's party
-00400 /.            482   sys DMP
-                    483  l308outer:
-00402 %             484   rtop                       # plp
-00403 MG9           485   call l308outerbody         # --
-00406 N*            486   loop l308outer             # --
-00408 %             487   rtop                       # plp
-00409 TO            488   ldz zvDivisorOrder         # plp dorder
-00411 0             489   inc                        # plp dorder+1
-00412 4             490   sub                        # plp-dorder+1
-00413 EKD9          491   z? jmp l308earlydone
-00417 I             492   ret
-                    493  
-                    494  l308earlydone:
-00418 *             495   tos
-00419 X             496   drop
-00420 I             497   ret
-                    498  
-                    499  l308outerbody: # ( pLeadingPower -- )
-                    500   # q = p[pLeadingPower] / d[dLeadingPower]
-00421 W             501   dup                        # plp plp
-00422 TM            502   ldz zvDividend             # plp plp p
-00424 3             503   add                        # plp &p[plp]
-00425 R             504   ld                         # plp p[plp]
-                    505  
-00426 TN            506   ldz zvDivisor              # plp p[plp] d
-00428 TO            507   ldz zvDivisorOrder         # plp p[plp] d dlp
-00430 3             508   add                        # plp p[plp] &d[dlp]
-00431 R             509   ld                         # plp p[plp] d[dlp]
-00432 6             510   div                        # plp q
-                    511  
-00433 TO            512   ldz zvDivisorOrder         # plp q dlp
-00435 +             513   tor                        # pi q R: di
-                    514  l308inner:
-00436 Y             515   over                       # pi q pi
-00437 Z             516   swap                       # pi pi q
-00438 %             517   rtop                       # pi pi q di
-00439 M.9           518   call l308innerbody         # pi
-00442 1             519   dec                        # pi-1
-00443 N             520   loop l308inner
-00445 X             521   drop
-00446 I             522   ret
-                    523  
-                    524  
-                    525  l308innerbody: # ( pi q di -- )
-00447 TN            526   ldz zvDivisor      # pi q &d[di]
-00449 R             527   ld                 # pi q d[di]
-00450 5             528   mul                # pi q*d[di]
-00451 Z             529   swap               # q*d[di] pi
-00452 TM            530   ldz zvDividend     # q*d[di] pi p
-00454 3             531   add                # q*d[di] &pi[p]
-00455 W             532   dup                # q*d[di] &pi[p] &pi[p]
-00456 R             533   ld                 # q*d[di] &pi[p] pi[p]
-00457 $             534   rot                # &pi[p] pi[p] q*d[di]
-00458 4             535   sub                # &pi[p] pi[p]-q*d[di]
-00459 Z             536   swap               # pi[p]-q*d[di] &pi[p]
-00460 S             537   st                 # --
-00461 I             538   ret
+                    466  l308earlydone:
+00405 *             467   tos
+00406 X             468   drop
+00407 I             469   ret
+                    470  
+                    471  l308outerbody: # ( pLeadingPower -- )
+                    472   # q = p[pLeadingPower] / d[dLeadingPower]
+00408 W             473   dup                        # plp plp
+00409 TM            474   ldz zvDividend             # plp plp p
+00411 3             475   add                        # plp &p[plp]
+00412 R             476   ld                         # plp p[plp]
+                    477  
+00413 TN            478   ldz zvDivisor              # plp p[plp] d
+00415 TO            479   ldz zvDivisorOrder         # plp p[plp] d dlp
+00417 3             480   add                        # plp p[plp] &d[dlp]
+00418 R             481   ld                         # plp p[plp] d[dlp]
+00419 6             482   div                        # plp q
+                    483  
+00420 TO            484   ldz zvDivisorOrder         # plp q dlp
+00422 +             485   tor                        # pi q R: di
+                    486  l308inner:
+                    487   # iterate decrementing pi and di,
+                    488   # do p[pi] -= q*d[di], p[pi-1] -= q*d[di-1], ...
+00423 Y             489   over                       # pi q pi
+00424 Y             490   over                       # pi q pi q
+00425 %             491   rtop                       # pi q pi q di
+00426 MW9           492   call l308innerbody         # pi q
+00429 Z             493   swap                       # q pi
+00430 1             494   dec                        # q pi-1
+00431 Z             495   swap                       # pi-1 q
+00432 NY            496   loop l308inner
+00434 X             497   drop                       # pi-1
+00435 X             498   drop                       # --
+00436 I             499   ret
+                    500  
+                    501  
+                    502  l308innerbody: # ( pi q di -- )
+                    503   # performs a single p[pi] = p[pi] - q * d[di];
+00437 TN            504   ldz zvDivisor              # pi q di d
+00439 3             505   add                        # pi q di &d[di]
+00440 R             506   ld                         # pi q d[di]
+00441 5             507   mul                        # pi q*d[di]
+00442 Z             508   swap                       # q*d[di] pi
+00443 TM            509   ldz zvDividend             # q*d[di] pi p
+00445 3             510   add                        # q*d[di] &pi[p]
+00446 W             511   dup                        # q*d[di] &pi[p] &pi[p]
+00447 R             512   ld                         # q*d[di] &pi[p] pi[p]
+00448 $             513   rot                        # &pi[p] pi[p] q*d[di]
+00449 4             514   sub                        # &pi[p] pi[p]-q*d[di]
+00450 Z             515   swap                       # pi[p]-q*d[di] &pi[p]
+00451 S             516   st                         # --
+00452 I             517   ret
+                    518  
+                    519  
+                    520  # FILE: 400_drawPrimitives.asm ####################################################
+                    521  
+                    522  equ x,22
+                    523  equ y,23
+                    524  equ size,24
+                    525  
+                    526  
+00453 O0            527  ldi 0
+00455 O0            528  ldi 0
+00457 MLC           529  call drawFinder
+                    530  
+                    531  
+00460 P:1           532  ldi 89
+00463 O0            533  ldi 0
+00465 MLC           534  call drawFinder
+                    535  
+00468 O0            536  ldi 0
+00470 P:1           537  ldi 89
+00473 MLC           538  call drawFinder
                     539  
-                    540  
-                    541   # FILE: 999_endProgMemory.asm ###############################################
-                    542   # DEFINES:
-                    543   #   LABEL endProgMemory the end of program memory
-                    544  
-                    545  endProgMemory:
-                    546  
+00476 MUA           540  call alignmentGrid
+00479 .             541  hlt
+                    542  
+                    543  alignmentGrid:
+00480 OF            544   ldi 15
+00482 +             545   tor
+                    546  lxy:
+00483 K/A           547   jmp check
+                    548  ok:
+00486 %             549   rtop
+00487 MPB           550   call alignmentGridInner
+                    551  ctd:
+00490 N             552   loop lxy
+00492 I             553   ret
+                    554  
+                    555  
+                    556  check:
+00493 %             557   rtop
+00494 OC            558   ldi 12
+00496 4             559   sub
+00497 EK+A          560   z? jmp ctd
+00501 %             561   rtop
+00502 O0            562   ldi 0
+00504 4             563   sub
+00505 EK+A          564   z? jmp ctd
+00509 %             565   rtop
+00510 O3            566   ldi 3
+00512 4             567   sub
+00513 EK+A          568   z? jmp ctd
+00517 K A           569   jmp ok
+                    570  
+                    571  alignmentGridInner:
+00520 W             572   dup
+00521 O4            573   ldi 4
+00523 6             574   div
+00524 PS0           575   ldi 28
+00527 5             576   mul
+00528 O4            577   ldi 4
+00530 3             578   add
+                    579  
+00531 Z             580   swap
+00532 O4            581   ldi 4
+00534 7             582   mod
+00535 PS0           583   ldi 28
+00538 5             584   mul
+00539 O4            585   ldi 4
+00541 3             586   add
+00542 /.            587   sys DMP
+00544 M8C           588   call drawAlignment
+00547 I             589   ret
+                    590  
+                    591  
+                    592  drawAlignment: # ( x y -- )
+00548 Y             593   over
+00549 Y             594   over
+00550 O5            595   ldi 5
+00552 M9D           596   call square
+00555 M0D           597   call add2
+00558 /3            598   sys DRAWDOT
+00560 I             599   ret
+                    600  
+                    601  drawFinder: # ( x y -- )
+00561 Y             602   over
+00562 Y             603   over
+00563 O7            604   ldi 7
+00565 M9D           605   call square
+                    606  
+00568 M0D           607   call add2
+00571 Y             608   over
+00572 Y             609   over
+00573 O3            610   ldi 3
+00575 M9D           611   call square
+                    612  
+00578 0             613   inc
+00579 Z             614   swap
+00580 0             615   inc
+00581 Z             616   swap
+00582 /3            617   sys DRAWDOT
+00584 I             618   ret
+                    619  
+                    620  add2: # (x y --)
+00585 O2            621   ldi 2
+00587 3             622   add
+00588 Z             623   swap
+00589 O2            624   ldi 2
+00591 3             625   add
+00592 Z             626   swap
+00593 I             627   ret
+                    628  
+                    629  square: # (x y size --)
+00594 1             630   dec
+00595 UO            631   stz size
+00597 UN            632   stz y
+00599 UM            633   stz x
+                    634  
+00601 TO            635   ldz size
+00603 +             636   tor
+                    637  l:
+00604 %             638   rtop
+00605 MX4           639   call inner
+00608 N*            640   loop l
+00610 I             641   ret
+                    642  
+                    643  inner:
+00611 +             644   tor
+                    645  
+00612 TM            646   ldz x
+00614 %             647   rtop
+00615 3             648   add
+00616 TN            649   ldz y
+                    650  
+00618 TM            651   ldz x
+00620 TN            652   ldz y
+00622 %             653   rtop
+00623 3             654   add
+                    655  
+00624 TM            656   ldz x
+00626 TO            657   ldz size
+00628 3             658   add
+00629 TN            659   ldz y
+00631 %             660   rtop
+00632 3             661   add
+                    662  
+00633 TM            663   ldz x
+00635 %             664   rtop
+00636 3             665   add
+00637 TN            666   ldz y
+00639 TO            667   ldz size
+00641 3             668   add
+                    669  
+                    670  
+00642 O3            671   ldi 3
+00644 +             672   tor
+                    673  l5:
+00645 /3            674   sys DRAWDOT
+00647 N-            675   loop l5
+                    676  
+00649 *             677   tos
+00650 X             678   drop
+00651 I             679   ret
+                    680   # FILE: 999_endProgMemory.asm ###############################################
+                    681   # DEFINES:
+                    682   #   LABEL endProgMemory the end of program memory
+                    683  
+                    684  endProgMemory:
+                    685  
 
 CONSTANTS
